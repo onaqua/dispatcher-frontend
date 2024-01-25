@@ -8,16 +8,26 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
     SortableContext,
-    arrayMove,
     useSortable,
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Button, Card, Table, message } from "antd";
+import { Button, Card, Table, Tooltip, Typography, message } from "antd";
+import { IoArrowDownCircleOutline } from "react-icons/io5";
 
 import { CSS } from "@dnd-kit/utilities";
 import { ColumnsType } from "antd/es/table";
-import { useEffect, useState } from "react";
-import { PreQueueApplicationDTO } from "../entities/PreQueueApplicationDTO";
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import {
+    ProductionApplicationDTO,
+    ProductionLayerDTO,
+} from "../entities/ApplicationDTO";
+import { ProductionCarDTO } from "../entities/ProductionCarDTO";
+import ProductionClientDTO from "../entities/ProductionClientDTO";
+import { RootState } from "../store/store";
+import { ApiError } from "../services/core/ApiError";
+import { ApplicationsService } from "../services/AuthorizationService";
+import { useMutation } from "react-query";
 
 interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
     "data-row-key": string;
@@ -57,25 +67,25 @@ const Row = (props: RowProps) => {
 };
 
 export const PreQueuePanel: React.FC = () => {
-    const [applications, setApplications] = useState<
-        Array<PreQueueApplicationDTO>
-    >([]);
+    const applications = useSelector(
+        (state: RootState) => state.applicationsInPreQueue.applications
+    );
 
     const [selectedApplication, setSelectedApplication] = useState<
-        PreQueueApplicationDTO | undefined
+        ProductionApplicationDTO | undefined
     >();
 
     const rowSelection = {
         onChange: (
             selectedRowKeys: React.Key[],
-            selectedRows: PreQueueApplicationDTO[]
+            selectedRows: ProductionApplicationDTO[]
         ) => {
             if (selectedRowKeys && selectedRows.length > 0) {
                 setSelectedApplication(selectedRows[0]);
             }
         },
-        getCheckboxProps: (record: PreQueueApplicationDTO) => ({
-            name: record.recipeName,
+        getCheckboxProps: (record: ProductionApplicationDTO) => ({
+            name: record,
         }),
     };
 
@@ -87,7 +97,7 @@ export const PreQueuePanel: React.FC = () => {
         })
     );
 
-    const columns: ColumnsType<PreQueueApplicationDTO> = [
+    const columns: ColumnsType<ProductionApplicationDTO> = [
         {
             title: "Рецепт",
             dataIndex: "recipeName",
@@ -107,57 +117,31 @@ export const PreQueuePanel: React.FC = () => {
     ];
 
     const onDragEnd = ({ active, over }: DragEndEvent) => {
-        if (active.id !== over?.id) {
-            setApplications((prev) => {
-                const activeIndex = prev.findIndex(
-                    (i) => i.order === active.id
-                );
-                const overIndex = prev.findIndex((i) => i.order === over?.id);
-                return arrayMove(prev, activeIndex, overIndex);
-            });
-        }
+        // if (active.id !== over?.id) {
+        //     setApplicationsInPreQueue((prev) => {
+        //         const activeIndex = prev.findIndex(
+        //             (i) => i.order === active.id
+        //         );
+        //         const overIndex = prev.findIndex((i) => i.order === over?.id);
+        //         return arrayMove(prev, activeIndex, overIndex);
+        //     });
+        // }
     };
 
-    useEffect(() => {
-        const application1: PreQueueApplicationDTO = {
-            recipeName: "Тестовый рецепт",
-            mixerNumber: 1,
-            applicationId: 1,
-            order: "1",
-            volume: 3,
-        };
+    const { isLoading, mutateAsync: addApplicationInQueueAsync } = useMutation<
+        Array<ProductionApplicationDTO>,
+        ApiError,
+        number
+    >((id) => ApplicationsService.AddInQueueAsync(id), {
+        onError(error) {
+            message.error(error.body.Details);
+        },
+    });
 
-        const application2: PreQueueApplicationDTO = {
-            recipeName: "Тестовый рецепт",
-            mixerNumber: 1,
-            applicationId: 2,
-            order: "5",
-            volume: 3,
-        };
-
-        const application3: PreQueueApplicationDTO = {
-            recipeName: "Тестовый рецепт",
-            mixerNumber: 1,
-            applicationId: 3,
-            order: "0",
-            volume: 3,
-        };
-
-        setApplications([application1, application2, application3]);
-    }, []);
-
-    function handleSubmitApplication(): void {
-        if (selectedApplication === undefined) {
-            message.error(
-                `Невозможно добавить несуществующую заявку. Выберите заявку из списка, а потом пропробуйте снова.`
-            );
-
-            return;
-        }
-
-        message.success(
-            `Заявка: ${selectedApplication?.applicationId} успешно добавлена в очередь.`
-        );
+    async function handleSubmitApplication(
+        applicationId: number
+    ): Promise<void> {
+        await addApplicationInQueueAsync(applicationId);
     }
 
     return (
@@ -172,27 +156,81 @@ export const PreQueuePanel: React.FC = () => {
                     strategy={verticalListSortingStrategy}
                 >
                     <Table
-                        className=" "
-                        rowSelection={{
-                            type: "radio",
-                            ...rowSelection,
-                        }}
-                        size="small"
-                        components={{
-                            body: {
-                                row: Row,
-                            },
-                        }}
-                        rowKey="order"
-                        columns={columns}
+                        loading={isLoading}
                         dataSource={applications}
-                    ></Table>
+                        pagination={{ pageSize: 5 }}
+                        size="small"
+                    >
+                        <Table.Column title="№" dataIndex="id"></Table.Column>
+                        <Table.Column
+                            title="Рецепты"
+                            dataIndex="layers"
+                            render={(l) => {
+                                const layers = l as Array<ProductionLayerDTO>;
+
+                                const recipes = layers
+                                    .map((layer) => layer.recipe.name)
+                                    .join(", ");
+
+                                return (
+                                    <Typography.Text>{recipes}</Typography.Text>
+                                );
+                            }}
+                        />
+                        <Table.Column
+                            title="Объём"
+                            dataIndex="volume"
+                        ></Table.Column>
+                        <Table.Column
+                            title="Клиент"
+                            dataIndex="client"
+                            render={(c) => {
+                                const client = c as ProductionClientDTO;
+                                return (
+                                    <Typography.Text>
+                                        {client.name}
+                                    </Typography.Text>
+                                );
+                            }}
+                        />
+                        <Table.Column
+                            title="Машина"
+                            dataIndex="car"
+                            render={(c) => {
+                                const car = c as ProductionCarDTO;
+                                return (
+                                    <Typography.Text>
+                                        {car.plateNumber}
+                                    </Typography.Text>
+                                );
+                            }}
+                        />
+                        <Table.Column
+                            title="Действие"
+                            dataIndex="id"
+                            render={(id) => {
+                                return (
+                                    <Tooltip
+                                        title="Отправить заявку на выполнение"
+                                        color="geekblue"
+                                    >
+                                        <Button
+                                            size="large"
+                                            type="link"
+                                            onClick={() =>
+                                                handleSubmitApplication(
+                                                    id as number
+                                                )
+                                            }
+                                            icon={<IoArrowDownCircleOutline />}
+                                        ></Button>
+                                    </Tooltip>
+                                );
+                            }}
+                        />
+                    </Table>
                 </SortableContext>
             </DndContext>
-
-            <Button type="primary" onClick={handleSubmitApplication}>
-                Отправить заявку
-            </Button>
         </Card>
     );
 };

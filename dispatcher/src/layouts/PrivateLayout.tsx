@@ -1,6 +1,7 @@
 import { Col, Layout, Row } from "antd";
 import { Content, Header } from "antd/es/layout/layout";
 import { UserAccountDropdownMenu } from "../components/UserAccount";
+import { SocketLayout } from "./SocketLayout";
 
 export type PrivateLayoutProps = {
     element: React.ReactNode;
@@ -20,7 +21,9 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
                 </Row>
             </Header>
 
-            <Content className=" w-full h-full">{element}</Content>
+            <Content className=" w-full h-full">
+                <SocketLayout element={element} />
+            </Content>
         </Layout>
     );
 };

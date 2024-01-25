@@ -1,88 +1,185 @@
-import { Badge, Card, Table, Tooltip } from "antd";
-import { useEffect, useState } from "react";
-import QueueApplicationDTO, {
+import {
+    Badge,
+    Button,
+    Card,
+    Popconfirm,
+    Table,
+    Tooltip,
+    Typography,
+    message,
+} from "antd";
+import { MdDeleteOutline } from "react-icons/md";
+import { useSelector } from "react-redux";
+import {
     ApplicationStatus,
-} from "../entities/Application";
+    ProductionLayerDTO,
+} from "../entities/ApplicationDTO";
+import { ProductionCarDTO } from "../entities/ProductionCarDTO";
+import ProductionClientDTO from "../entities/ProductionClientDTO";
+import { RootState } from "../store/store";
+import { ApiError } from "../services/core/ApiError";
+import { useMutation } from "react-query";
+import { ApplicationsService } from "../services/AuthorizationService";
 
 export const QueuePanel: React.FC = () => {
-    const [queueApplications, setQueueApplications] = useState<
-        Array<QueueApplicationDTO>
-    >([]);
+    const applications = useSelector(
+        (state: RootState) => state.applicationsInQueue.applications
+    );
 
-    useEffect(() => {
-        const application1: QueueApplicationDTO = {
-            id: 1,
-            recipe: "Тестовый рецепт - 1",
-            mixerNumber: 1,
-            volume: 2.8,
-            status: {
-                currentStatus: "completed",
-                currentProgress: 100,
-            },
-        };
+    const { isLoading, mutateAsync: deleteApplicationAsync } = useMutation<
+        void,
+        ApiError,
+        number
+    >((id) => ApplicationsService.DeleteInQueueAsync(id), {
+        onError(error) {
+            message.error(error.body.Details);
+        },
+    });
 
-        const application2: QueueApplicationDTO = {
-            id: 1,
-            recipe: "Тестовый рецепт - 2",
-            mixerNumber: 1,
-            volume: 2.8,
-            status: {
-                currentStatus: "inProcess",
-                currentProgress: 100,
-            },
-        };
-
-        const application3: QueueApplicationDTO = {
-            id: 1,
-            recipe: "Тестовый рецепт - 3",
-            mixerNumber: 1,
-            volume: 2.8,
-            status: {
-                currentStatus: "wait",
-                currentProgress: 50,
-            },
-        };
-
-        setQueueApplications([application1, application2, application3]);
-    }, []);
+    async function onDeleteConfirm(applicationId: number) {
+        await deleteApplicationAsync(applicationId);
+    }
 
     return (
         <Card className=" w-full max-h-full h-full">
-            <Table dataSource={queueApplications} size="small" className=" max-h-full h-full min-h-96">
+            <Table
+                loading={isLoading}
+                dataSource={applications}
+                size="small"
+                pagination={{ pageSize: 5 }}
+            >
                 <Table.Column title="№" dataIndex="id"></Table.Column>
-                <Table.Column title="Рецепт" dataIndex="recipe"></Table.Column>
-                <Table.Column title="Объём" dataIndex="volume"></Table.Column>
                 <Table.Column
-                    title="Состояние"
+                    title="Рецепты"
+                    dataIndex="layers"
+                    render={(l) => {
+                        const layers = l as Array<ProductionLayerDTO>;
+
+                        const recipes = layers
+                            .map((layer) => layer.recipe.name)
+                            .join(", ");
+
+                        return <Typography.Text>{recipes}</Typography.Text>;
+                    }}
+                />
+
+                <Table.Column title="Объём" dataIndex="volume"></Table.Column>
+
+                <Table.Column
+                    title="Фактический объём"
+                    dataIndex="currentVolume"
+                ></Table.Column>
+
+                <Table.Column
+                    title="Клиент"
+                    dataIndex="client"
+                    render={(c) => {
+                        const client = c as ProductionClientDTO;
+                        return <Typography.Text>{client.name}</Typography.Text>;
+                    }}
+                />
+
+                <Table.Column
+                    title="Машина"
+                    dataIndex="car"
+                    render={(c) => {
+                        const car = c as ProductionCarDTO;
+                        return (
+                            <Typography.Text>{car.plateNumber}</Typography.Text>
+                        );
+                    }}
+                />
+
+                <Table.Column
+                    title="Статус"
                     dataIndex="status"
-                    render={(s) => {
-                        const status = s as ApplicationStatus;
-
-                        if (status.currentStatus === "completed") {
-                            return (
-                                <Tooltip title="Заявка успешно выполнена">
-                                    <Badge color="green" />
-                                </Tooltip>
-                            );
-                        }
-
-                        if (status.currentStatus === "inProcess") {
-                            return (
-                                <Tooltip title="Заявка выполняется оператором ФИО / Юзернейм аккаунта">
-                                    <Badge color="blue" />
-                                </Tooltip>
-                            );
-                        }
-
-                        if (status.currentStatus === "wait") {
-                            return (
-                                <Tooltip title="Заявка в ожидании на выполнение">
-                                    <Badge color="yellow" />
-                                </Tooltip>
-                            );
+                    render={(status) => {
+                        switch (status as ApplicationStatus) {
+                            case ApplicationStatus.Complete:
+                                return (
+                                    <Badge status="success" text="Выполнена" />
+                                );
+                            case ApplicationStatus.DosingIsCompleted:
+                                return (
+                                    <Badge
+                                        status="processing"
+                                        text="Дозирование окончено"
+                                    />
+                                );
+                            case ApplicationStatus.Mixing:
+                                return (
+                                    <Badge
+                                        status="processing"
+                                        text="Перемешивание"
+                                    />
+                                );
+                            case ApplicationStatus.Run:
+                                return (
+                                    <Badge
+                                        status="processing"
+                                        text="Выгрузка из смесителя"
+                                    />
+                                );
+                            case ApplicationStatus.UnloadingIntoMixer:
+                                return (
+                                    <Badge
+                                        status="processing"
+                                        text="Выгрузка в смеситель"
+                                    />
+                                );
+                            case ApplicationStatus.Dosing:
+                                return (
+                                    <Badge
+                                        status="processing"
+                                        text="Дозирование"
+                                    />
+                                );
+                            case ApplicationStatus.Wait:
+                                return (
+                                    <Badge status="warning" text="В очереди" />
+                                );
+                            case ApplicationStatus.WaitForDosing:
+                                return (
+                                    <Badge
+                                        status="warning"
+                                        text="Ожидает подготовки к дозированию"
+                                    />
+                                );
+                            default:
+                                return (
+                                    <span className="text-red-500">Ошибка</span>
+                                );
                         }
                     }}
                 ></Table.Column>
+                <Table.Column
+                    title="Действие"
+                    dataIndex="id"
+                    render={(id) => {
+                        return (
+                            <Popconfirm
+                                title="Вы действительно хотите удалить заявку из очереди?"
+                                okText="Да, удалить"
+                                cancelText="Нет"
+                                onConfirm={() => {
+                                    onDeleteConfirm(id as number);
+                                }}
+                            >
+                                <Tooltip
+                                    title="Удалить заявку из списка оператора"
+                                    color="geekblue"
+                                >
+                                    <Button
+                                        size="large"
+                                        danger
+                                        type="link"
+                                        icon={<MdDeleteOutline />}
+                                    ></Button>
+                                </Tooltip>
+                            </Popconfirm>
+                        );
+                    }}
+                />
             </Table>
         </Card>
     );

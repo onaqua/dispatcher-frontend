@@ -1,11 +1,57 @@
-import { Button, Card, Divider, Input, Select, Typography } from "antd";
+import {
+    Button,
+    Card,
+    Divider,
+    Input,
+    Select,
+    Typography,
+    message,
+} from "antd";
+import { DefaultOptionType } from "antd/es/select";
 import { ChangeEvent, useState } from "react";
+import ProductionClientDTO from "../entities/ProductionClientDTO";
+import { ApiError } from "../services/core/ApiError";
+import { ClientsService } from "../services/AuthorizationService";
+import { useMutation } from "react-query";
+import { useDispatch, useSelector } from "react-redux";
+import { setClient, setInvoice } from "../store/reducers/dispatcherSlice";
+import { RootState } from "../store/store";
 
 export const ClientsPanel: React.FC = () => {
-    const [invoice, setInvoice] = useState("");
+    const dispatch = useDispatch();
+    const invoice = useSelector((state: RootState) => state.dispatcher.invoice);
+    const [query, setQuery] = useState("");
+    const [options, setOptions] = useState<Array<DefaultOptionType>>([]);
+
+    const { isLoading, isError, mutateAsync: searchCarsAsync } = useMutation<
+        Array<ProductionClientDTO>,
+        ApiError
+    >(() => ClientsService.SearchAsync(query, 0, 5), {
+        onSuccess(data) {
+            const options = data.map<DefaultOptionType>((car) => ({
+                value: car.id,
+                label: car.name,
+            }));
+
+            setOptions(options);
+        },
+        onError(error) {
+            message.error(error.body.Details);
+        },
+    });
+
+    const handleSearchChanged = async (query: string) => {
+        setQuery(query);
+
+        await searchCarsAsync();
+    };
+
+    const handleSelect = async (clientId: number) => {
+        dispatch(setClient(clientId));
+    };
 
     function handleInvoiceChanged(event: ChangeEvent<HTMLInputElement>): void {
-        setInvoice(event.target.value);
+        dispatch(setInvoice(event.target.value));
     }
 
     return (
@@ -28,6 +74,12 @@ export const ClientsPanel: React.FC = () => {
                         showSearch
                         size="small"
                         placeholder="Введите имя клиента для поиска"
+                        options={options}
+                        loading={isLoading}
+                        searchValue={query}
+                        onSearch={handleSearchChanged}
+                        onSelect={(e) => handleSelect(e)}
+                        onFocus={() => handleSearchChanged("")}
                         className=" w-full"
                     ></Select>
                 </div>

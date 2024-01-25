@@ -1,5 +1,5 @@
-import { CarDTO } from "./Car";
-import ClientDTO from "./Client";
+import { ProductionCarDTO } from "./ProductionCarDTO";
+import ProductionClientDTO from "./ProductionClientDTO";
 
 
 export type PreQueueApplicationDTO = {
@@ -9,8 +9,8 @@ export type PreQueueApplicationDTO = {
     recipeName: string;
     volume: number;
     mixerNumber: number;
-    client?: ClientDTO;
-    car?: CarDTO;
+    client?: ProductionClientDTO;
+    car?: ProductionCarDTO;
 };
 
 export default PreQueueApplicationDTO;
