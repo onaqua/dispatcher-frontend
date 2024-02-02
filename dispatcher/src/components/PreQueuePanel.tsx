@@ -1,6 +1,5 @@
 import {
     DndContext,
-    DragEndEvent,
     PointerSensor,
     useSensor,
     useSensors,
@@ -17,6 +16,7 @@ import { IoArrowDownCircleOutline } from "react-icons/io5";
 import { CSS } from "@dnd-kit/utilities";
 import { ColumnsType } from "antd/es/table";
 import { useState } from "react";
+import { useMutation } from "react-query";
 import { useSelector } from "react-redux";
 import {
     ProductionApplicationDTO,
@@ -24,10 +24,9 @@ import {
 } from "../entities/ApplicationDTO";
 import { ProductionCarDTO } from "../entities/ProductionCarDTO";
 import ProductionClientDTO from "../entities/ProductionClientDTO";
-import { RootState } from "../store/store";
+import { ApplicationsService } from "../services/ApplicationsService";
 import { ApiError } from "../services/core/ApiError";
-import { ApplicationsService } from "../services/AuthorizationService";
-import { useMutation } from "react-query";
+import { RootState } from "../store/store";
 
 interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
     "data-row-key": string;
@@ -116,18 +115,6 @@ export const PreQueuePanel: React.FC = () => {
         },
     ];
 
-    const onDragEnd = ({ active, over }: DragEndEvent) => {
-        // if (active.id !== over?.id) {
-        //     setApplicationsInPreQueue((prev) => {
-        //         const activeIndex = prev.findIndex(
-        //             (i) => i.order === active.id
-        //         );
-        //         const overIndex = prev.findIndex((i) => i.order === over?.id);
-        //         return arrayMove(prev, activeIndex, overIndex);
-        //     });
-        // }
-    };
-
     const { isLoading, mutateAsync: addApplicationInQueueAsync } = useMutation<
         Array<ProductionApplicationDTO>,
         ApiError,
@@ -145,90 +132,105 @@ export const PreQueuePanel: React.FC = () => {
     }
 
     return (
-        <Card className=" w-full h-full">
-            <DndContext
-                sensors={sensors}
-                modifiers={[restrictToVerticalAxis]}
-                onDragEnd={onDragEnd}
-            >
+        <Card className="h-full">
+            <DndContext sensors={sensors} modifiers={[restrictToVerticalAxis]}>
                 <SortableContext
                     items={applications.map((i) => i.order)}
                     strategy={verticalListSortingStrategy}
                 >
-                    <Table
-                        loading={isLoading}
-                        dataSource={applications}
-                        pagination={{ pageSize: 5 }}
-                        size="small"
-                    >
-                        <Table.Column title="№" dataIndex="id"></Table.Column>
-                        <Table.Column
-                            title="Рецепты"
-                            dataIndex="layers"
-                            render={(l) => {
-                                const layers = l as Array<ProductionLayerDTO>;
+                    <div className=" overflow-auto">
+                        <Table
+                            locale={{ emptyText: "Нет заявок" }}
+                            rowKey={(record) => record.id}
+                            className=" h-full"
+                            loading={isLoading}
+                            dataSource={applications}
+                            pagination={{ pageSize: 4 }}
+                            size="small"
+                        >
+                            <Table.Column
+                                title="№"
+                                dataIndex="id"
+                            ></Table.Column>
+                            <Table.Column
+                                title="Рецепты"
+                                dataIndex="layers"
+                                render={(l) => {
+                                    const layers = l as Array<
+                                        ProductionLayerDTO
+                                    >;
 
-                                const recipes = layers
-                                    .map((layer) => layer.recipe.name)
-                                    .join(", ");
+                                    const recipes = layers
+                                        .map((layer) => layer.recipe.name)
+                                        .join(", ");
 
-                                return (
-                                    <Typography.Text>{recipes}</Typography.Text>
-                                );
-                            }}
-                        />
-                        <Table.Column
-                            title="Объём"
-                            dataIndex="volume"
-                        ></Table.Column>
-                        <Table.Column
-                            title="Клиент"
-                            dataIndex="client"
-                            render={(c) => {
-                                const client = c as ProductionClientDTO;
-                                return (
-                                    <Typography.Text>
-                                        {client.name}
-                                    </Typography.Text>
-                                );
-                            }}
-                        />
-                        <Table.Column
-                            title="Машина"
-                            dataIndex="car"
-                            render={(c) => {
-                                const car = c as ProductionCarDTO;
-                                return (
-                                    <Typography.Text>
-                                        {car.plateNumber}
-                                    </Typography.Text>
-                                );
-                            }}
-                        />
-                        <Table.Column
-                            title="Действие"
-                            dataIndex="id"
-                            render={(id) => {
-                                return (
-                                    <Tooltip
-                                        title="Отправить заявку на выполнение"
-                                        color="geekblue"
-                                    >
-                                        <Button
-                                            size="large"
-                                            type="link"
-                                            onClick={() =>
-                                                handleSubmitApplication(
-                                                    id as number
-                                                )
-                                            }
-                                            icon={<IoArrowDownCircleOutline />}
-                                        ></Button>
-                                    </Tooltip>
-                                );
-                            }}
-                        />
-                    </Table>
+                                    return (
+                                        <Typography.Text>
+                                            {recipes}
+                                        </Typography.Text>
+                                    );
+                                }}
+                            />
+
+                            <Table.Column
+                                title="Объём"
+                                className=" break-before-left"
+                                dataIndex="volume"
+                            ></Table.Column>
+                            <Table.Column
+                                title="Клиент"
+                                className=" break-before-left"
+                                dataIndex="client"
+                                render={(c) => {
+                                    const client = c as ProductionClientDTO;
+                                    return (
+                                        <Typography.Text>
+                                            {client.name}
+                                        </Typography.Text>
+                                    );
+                                }}
+                            />
+                            <Table.Column
+                                title="Машина"
+                                className=" break-before-left"
+                                dataIndex="car"
+                                render={(c) => {
+                                    const car = c as ProductionCarDTO;
+                                    return (
+                                        <Typography.Text>
+                                            {car.plateNumber}
+                                        </Typography.Text>
+                                    );
+                                }}
+                            />
+                            <Table.Column
+                                title="Действие"
+                                className=" break-before-left"
+                                dataIndex="id"
+                                render={(id) => {
+                                    return (
+                                        <Tooltip
+                                            title="Отправить заявку на выполнение"
+                                            color="geekblue"
+                                        >
+                                            <Button
+                                                size="large"
+                                                type="link"
+                                                onClick={() =>
+                                                    handleSubmitApplication(
+                                                        id as number
+                                                    )
+                                                }
+                                                icon={
+                                                    <IoArrowDownCircleOutline />
+                                                }
+                                            ></Button>
+                                        </Tooltip>
+                                    );
+                                }}
+                            />
+                        </Table>
+                    </div>
                 </SortableContext>
             </DndContext>
         </Card>

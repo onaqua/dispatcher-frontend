@@ -3,19 +3,21 @@ import {
     IRetryPolicy,
     RetryContext,
 } from "@microsoft/signalr";
-import { Button, Card, Result, Spin, Typography, message } from "antd";
+import { Button, Card, Result, Space, Spin, message } from "antd";
 import Layout, { Content } from "antd/es/layout/layout";
 import { useEffect, useState } from "react";
 import { useMutation } from "react-query";
-import { useDispatch } from "react-redux";
-import { ProductionApplicationDTO } from "../entities/ApplicationDTO";
+import { useDispatch, useSelector } from "react-redux";
+import UseAnimations from "react-useanimations";
+import alertCircle from "react-useanimations/lib/alertCircle";
+import ApplicationStatus, {
+    ProductionApplicationDTO,
+} from "../entities/ApplicationDTO";
 import { ApplicationInQueueAdded as ApplicationInQueueUpdated } from "../entities/notifications/ApplicationInQueueAdded";
 import { ApplicationStateUpdated as ApplicationStateUpdatedNotification } from "../entities/notifications/ApplicationStateUpdated";
 import { ApplicationsOrderUpdated } from "../entities/notifications/ApplicationsOrderUpdated";
-import {
-    ApplicationsService,
-    ConnectionsService,
-} from "../services/AuthorizationService";
+import { ConnectionsService } from "../services/ConnectionsService";
+import { ApplicationsService } from "../services/ApplicationsService";
 import { ApiError } from "../services/core/ApiError";
 import {
     addApplicationInPreQueue,
@@ -30,13 +32,15 @@ import {
     updateApplicationInQueue,
     updateOrderInQueue,
 } from "../store/reducers/applicationsInQueueSlice";
+import { RootState } from "../store/store";
+import { setApplication } from "../store/reducers/dispatcherSlice";
 
 export type SocketLayoutProps = {
     element: React.ReactNode;
 };
 
 class ConnectionRetryPolicy implements IRetryPolicy {
-    nextRetryDelayInMilliseconds(retryContext: RetryContext): number | null {
+    nextRetryDelayInMilliseconds(): number | null {
         return 1000;
     }
 }
@@ -45,6 +49,10 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
     const dispatch = useDispatch();
     const [isConnected, setIsConnected] = useState(true);
     const [isConnecting, setIsConnecting] = useState(false);
+
+    const dialogApplication = useSelector(
+        (state: RootState) => state.dispatcher.application
+    );
 
     const {
         isLoading: isApplicationsInQueueLoading,
@@ -86,7 +94,6 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
                 dispatch(removeApplicationInQueue(application.id));
             } else {
                 dispatch(addApplicationInQueue(application));
-                message.success(`Заявка ${application.id} успешно создана`);
             }
         },
         onError(error) {
@@ -101,6 +108,10 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
     >((id) => ApplicationsService.GetInQueueAsync(id), {
         onSuccess(application) {
             dispatch(updateApplicationInQueue(application));
+
+            if (application.id === dialogApplication?.id) {
+                dispatch(setApplication(application));
+            }
         },
         onError(error) {
             message.error(error.body.Details);
@@ -285,44 +296,41 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
     }, []);
 
     return (
-        <Spin
-            spinning={
-                isApplicationsInQueueLoading ||
-                isApplicationsPreQueueLoading ||
-                isConnecting
-            }
-        >
-            <Layout className=" w-full h-full bg-slate-50">
+        <Layout className=" w-full bg-slate-50 p-4">
+            <Spin
+                spinning={
+                    isApplicationsInQueueLoading ||
+                    isApplicationsPreQueueLoading ||
+                    isConnecting
+                }
+            >
                 {isConnected && (
-                    <Content className=" w-full h-full">{element}</Content>
+                    <Content className=" w-full min-h-screen">{element}</Content>
                 )}
 
                 {!isConnected && (
-                    <Content className=" ">
-                        <Card className="z-50 text-center absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                            <Spin spinning={isPingLoading}>
-                                <Result
-                                    status="error"
-                                    title="Нет связи с производством"
-                                    subTitle="Проверьте подключение к интернету на устройстве, где расположена программа SmartMix."
-                                    extra={
-                                        <Button
-                                            type="primary"
-                                            onClick={OnRetryConnectHandle}
-                                            disabled={isPingLoading}
-                                        >
-                                            Проверить подключение
-                                        </Button>
-                                    }
-                                />
-                            </Spin>
+                    <div className=" items-center justify-center h-full w-full">
+                        <Card bordered={true} className=" h-full w-full">
+                            <Result
+                                status="500"
+                                title="Хьюстон, у нас проблемы..."
+                                subTitle={`
+                                        Ваше производство скоро переподключится, но если вы не верите, то можете потыкать на кнопку ниже.
+                                        Если проблема долго не исчезает, то вам необходимо проверить интернет подключение на компьютере, где расположена программа SmartMix.`}
+                                extra={
+                                    <Button
+                                        type="primary"
+                                        onClick={OnRetryConnectHandle}
+                                        disabled={isPingLoading}
+                                    >
+                                        Проверить подключение
+                                    </Button>
+                                }
+                            />
                         </Card>
-                        <Content className=" pointer-events-none opacity-15">
-                            {element}
-                        </Content>
-                    </Content>
+                    </div>
                 )}
-            </Layout>
-        </Spin>
+            </Spin>
+        </Layout>
     );
 };

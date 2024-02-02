@@ -1,7 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { ProductionCarDTO } from "../../entities/ProductionCarDTO";
-import ProductionClientDTO from "../../entities/ProductionClientDTO";
-import ProductionRecipeDTO from "../../entities/ProductionRecipeDTO";
+import { ProductionApplicationDTO } from "../../entities/ApplicationDTO";
 
 export type DispatcherState = {
     mixer: number;
@@ -10,6 +8,8 @@ export type DispatcherState = {
     carId?: number;
     recipeId?: number;
     clientId?: number;
+    categoryId: number;
+    application?: ProductionApplicationDTO;
 };
 
 const initialState: DispatcherState = {
@@ -19,6 +19,7 @@ const initialState: DispatcherState = {
     carId: 0,
     recipeId: 0,
     clientId: 0,
+    categoryId: -1,
 };
 
 const dispatcherSlice = createSlice({
@@ -40,8 +41,14 @@ const dispatcherSlice = createSlice({
         setRecipe(state, action: PayloadAction<number>) {
             state.recipeId = action.payload;
         },
+        setCategory(state, action: PayloadAction<number>) {
+            state.categoryId = action.payload;
+        },
         setClient(state, action: PayloadAction<number>) {
             state.clientId = action.payload;
+        },
+        setApplication(state, action: PayloadAction<ProductionApplicationDTO>) {
+            state.application = action.payload;
         },
     },
 });
@@ -53,6 +60,8 @@ export const {
     setMixer,
     setRecipe,
     setVolume,
+    setCategory,
+    setApplication,
 } = dispatcherSlice.actions;
 
 export default dispatcherSlice.reducer;

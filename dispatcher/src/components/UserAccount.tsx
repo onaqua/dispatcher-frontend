@@ -4,6 +4,8 @@ export type UserAccountDropdownMenuProps = {
     username: string;
     email?: string;
     avatarUrl?: string;
+
+    onSignOut(): Promise<void>;
 };
 
 /** Компонент с иконкой пользователя имеет
@@ -11,16 +13,14 @@ export type UserAccountDropdownMenuProps = {
 export const UserAccountDropdownMenu: React.FC<UserAccountDropdownMenuProps> = ({
     username,
     avatarUrl,
+    onSignOut,
 }) => {
     const items: MenuProps["items"] = [
-        {
-            key: "1",
-            label: <a target="_blank">Профиль</a>,
-        },
         {
             key: "2",
             danger: true,
             label: <a target="_blank">Выйти из аккаунта</a>,
+            onClick: onSignOut,
         },
     ];
 

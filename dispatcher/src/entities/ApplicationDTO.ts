@@ -38,3 +38,5 @@ export enum ApplicationStatus {
     Run = 6,
     Complete = 7,
 }
+
+export default ApplicationStatus;

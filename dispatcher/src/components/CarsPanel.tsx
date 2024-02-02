@@ -1,79 +1,89 @@
-import { Button, Card, Divider, Select, Typography, message } from "antd";
-import { DefaultOptionType } from "antd/es/select";
+import { Button, Select, message } from "antd";
 import { useState } from "react";
 import { useMutation } from "react-query";
-import { ProductionCarDTO } from "../entities/ProductionCarDTO";
-import { CarsService } from "../services/AuthorizationService";
-import { ApiError } from "../services/core/ApiError";
 import { useDispatch } from "react-redux";
+import { PagedList } from "../entities/PagedList";
+import { ProductionCarDTO } from "../entities/ProductionCarDTO";
+import { CarsService } from "../services/CarsService";
+import { ApiError } from "../services/core/ApiError";
 import { setCar } from "../store/reducers/dispatcherSlice";
+import { PaginationProps } from "../types/PaginationProps";
+import { TypedOption } from "../types/TypedOption";
+import { PermissionsService } from "../services/PermissionsService";
+import { DispatcherPermissions } from "../consts/Permissions";
 
 export const CarsPanel: React.FC = () => {
     const dispatch = useDispatch();
 
     const [query, setQuery] = useState("");
-    const [options, setOptions] = useState<Array<DefaultOptionType>>([]);
+    const [options, setOptions] = useState<
+        Array<TypedOption<ProductionCarDTO>>
+    >([]);
 
     const { isLoading, isError, mutateAsync: searchCarsAsync } = useMutation<
-        Array<ProductionCarDTO>,
-        ApiError
-    >(() => CarsService.SearchAsync(query, 0, 5), {
-        onSuccess(data) {
-            const options = data.map<DefaultOptionType>((car) => ({
-                value: car.id,
-                label: car.plateNumber,
-            }));
+        PagedList<ProductionCarDTO>,
+        ApiError,
+        PaginationProps
+    >(
+        (pagination) =>
+            CarsService.SearchAsync(
+                pagination.query,
+                (pagination.page - 1) * pagination.pageSize,
+                pagination.pageSize
+            ),
+        {
+            onSuccess(data) {
+                const fetchedOptions = data.items.map<
+                    TypedOption<ProductionCarDTO>
+                >((car) => ({
+                    value: car.plateNumber,
+                    label: car.plateNumber,
+                    data: car,
+                }));
 
-            setOptions(options);
-        },
-        onError(error) {
-            message.error(error.body.Details);
-        },
-    });
+                setOptions(fetchedOptions);
+            },
+            onError(error) {
+                message.error(error.body.Details);
+            },
+        }
+    );
 
-    const handleSearchChanged = async (query: string) => {
+    const handleSearchChanged = (query: string) => {
         setQuery(query);
 
-        await searchCarsAsync();
+        searchCarsAsync({ query: query, page: 1, pageSize: 5 });
     };
 
-    const handleSelect = async (carId: number) => {
-        dispatch(setCar(carId));
+    const handleSelect = async (car: ProductionCarDTO) => {
+        dispatch(setCar(car.id));
     };
 
     return (
-        <Card className="w-full h-full min-h-32">
-            <div className="space-y-3 w-full min-h-10">
-                <div className="flex space-x-2 min-h-10">
+        <>
+            <div className="space-x-2 flex w-full">
+                {PermissionsService.hasPermission(
+                    DispatcherPermissions.CarsCreate
+                ) && (
                     <Button size="small" type="primary">
                         Машины
                     </Button>
-                    <Select
-                        showSearch
-                        className="w-full"
-                        size="small"
-                        options={options}
-                        loading={isLoading}
-                        searchValue={query}
-                        onSelect={(e) => handleSelect(e)}
-                        onSearch={handleSearchChanged}
-                        placeholder="Введите номер машины для поиска"
-                    ></Select>
-                </div>
-
-                <Divider />
-
-                <div className="w-full text-center min-h-10">
-                    <Typography.Text className="w-full text-zinc-400">
-                        Не можете найти нужный автомобиль? Попробуйте создать
-                        его нажав по кнопке{" "}
-                        <Typography.Link>
-                            <strong>Управление машинами</strong>
-                        </Typography.Link>
-                    </Typography.Text>
-                </div>
+                )}
+                <Select
+                    showSearch
+                    className="w-full"
+                    size="small"
+                    id="car-input"
+                    options={options}
+                    loading={isLoading}
+                    searchValue={query}
+                    onSelect={(_, e) => handleSelect(e.data)}
+                    onSearch={handleSearchChanged}
+                    onFocus={(_) => handleSearchChanged("")}
+                    placeholder="Введите номер машины для поиска"
+                ></Select>
             </div>
-        </Card>
+        </>
     );
 };
 

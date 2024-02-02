@@ -4,3 +4,9 @@ export type ProductionRecipeDTO = {
 };
 
 export default ProductionRecipeDTO;
+
+export type ProductionMixerDTO = {
+    number: number;
+    volume: number;
+    virtualNumber: number;
+};

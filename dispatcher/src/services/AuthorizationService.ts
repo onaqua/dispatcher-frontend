@@ -1,177 +1,34 @@
-import { ProductionApplicationDTO } from "../entities/ApplicationDTO";
-import { ProductionCarDTO } from "../entities/ProductionCarDTO";
-import ProductionClientDTO from "../entities/ProductionClientDTO";
-import ProductionRecipeDTO from "../entities/ProductionRecipeDTO";
+import { Dayjs } from "dayjs";
+import { PagedList } from "../entities/PagedList";
+import {
+    EventLevel,
+    EventStatus,
+    ProductionEventDTO,
+} from "../entities/ProductionEventDTO";
+import UserStateDTO from "../entities/UserStateDTO";
 import { CancelablePromise } from "./core/CancelablePromise";
 import { OpenAPI } from "./core/OpenAPI";
 import { request as __request } from "./core/request";
-import { AddApplicationInPreQueueRequest, LoginRequest } from "./requests/LoginRequest";
+import { LoginRequest } from "./requests/LoginRequest";
 
-export class CarsService {
-    public static SearchAsync(
-        query?: string,
+export class EventsService {
+    public static GetAsync(
         offset: number = 0,
-        quantity: number = 5
-    ): CancelablePromise<Array<ProductionCarDTO>> {
+        quantity: number = 5,
+        objectName?: string | undefined,
+        userName?: string | undefined,
+        dateFrom?: Dayjs | undefined | null,
+        dateTo?: Dayjs | undefined | null,
+        status?: EventStatus | undefined | null,
+        level?: EventLevel | undefined | null
+    ): CancelablePromise<PagedList<ProductionEventDTO>> {
         return __request(OpenAPI, {
             method: "GET",
-            url: `/cars?query=${query}&offset=${offset}&quantity=${quantity}`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-            },
-        });
-    }
-}
-
-export class ConnectionsService {
-    public static CheckAsync(): CancelablePromise<void> {
-        return __request(OpenAPI, {
-            method: "GET",
-            url: `/connections/check`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-            },
-        });
-    }
-}
-
-export class ClientsService {
-    public static SearchAsync(
-        query?: string,
-        offset: number = 0,
-        quantity: number = 5
-    ): CancelablePromise<Array<ProductionClientDTO>> {
-        return __request(OpenAPI, {
-            method: "GET",
-            url: `/clients?query=${query}&offset=${offset}&quantity=${quantity}`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-            },
-        });
-    }
-}
-
-export class ApplicationsService {
-    public static GetAllInQueueAsync(): CancelablePromise<
-        Array<ProductionApplicationDTO>
-    > {
-        return __request(OpenAPI, {
-            method: "GET",
-            url: `/applications/inQueue`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-            },
-        });
-    }
-
-    public static AddInQueueAsync(
-        applicationId: number
-    ): CancelablePromise<Array<ProductionApplicationDTO>> {
-        return __request(OpenAPI, {
-            method: "POST",
-            url: `/applications/inQueue/${applicationId}`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-            },
-        });
-    }
-
-    public static AddInPreQueueAsync(
-        request: AddApplicationInPreQueueRequest
-    ): CancelablePromise<void> {
-        return __request(OpenAPI, {
-            method: "POST",
-            body: request,
-            url: `/applications/inPreQueue`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-            },
-        });
-    }
-
-    public static DeleteInQueueAsync(
-        applicationId: number
-    ): CancelablePromise<void> {
-        return __request(OpenAPI, {
-            method: "DELETE",
-            url: `/applications/inQueue/${applicationId}`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-            },
-        });
-    }
-
-    public static DeleteInPreQueueAsync(
-        applicationId: number
-    ): CancelablePromise<void> {
-        return __request(OpenAPI, {
-            method: "DELETE",
-            url: `/applications/inPreQueue/${applicationId}`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-            },
-        });
-    }
-
-    public static GetAllInPreQueueAsync(): CancelablePromise<
-        Array<ProductionApplicationDTO>
-    > {
-        return __request(OpenAPI, {
-            method: "GET",
-            url: `/applications/inPreQueue`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-            },
-        });
-    }
-
-    public static GetInQueueAsync(
-        applicationId: number
-    ): CancelablePromise<ProductionApplicationDTO> {
-        return __request(OpenAPI, {
-            method: "GET",
-            url: `/applications/inQueue/${applicationId}`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-                503: `Service unavailable`,
-            },
-        });
-    }
-
-    public static GetInPreQueueAsync(
-        applicationId: number
-    ): CancelablePromise<ProductionApplicationDTO> {
-        return __request(OpenAPI, {
-            method: "GET",
-            url: `/applications/inPreQueue/${applicationId}`,
-            errors: {
-                401: `Unauthorized`,
-                500: `Server Error`,
-                503: `Service unavailable`,
-            },
-        });
-    }
-}
-
-export class RecipesService {
-    public static SearchAsync(
-        query?: string,
-        offset: number = 0,
-        quantity: number = 5
-    ): CancelablePromise<Array<ProductionRecipeDTO>> {
-        return __request(OpenAPI, {
-            method: "GET",
-            url: `/recipes?query=${query}&offset=${offset}&quantity=${quantity}`,
+            url: `/events?offset=${offset}&quantity=${quantity}&fromDate=${dateFrom?.toJSON()}&toDate=${dateTo?.toJSON()}&objectName=${
+                objectName ?? ""
+            }&userName=${userName ?? ""}&status=${status ?? ""}&level=${
+                level ?? ""
+            }`,
             errors: {
                 401: `Unauthorized`,
                 500: `Server Error`,
@@ -186,6 +43,28 @@ export class AuthorizationService {
             method: "POST",
             url: "/authorization/signin",
             body: body,
+            errors: {
+                401: `Unauthorized`,
+                500: `Server Error`,
+            },
+        });
+    }
+
+    public static SignOutAsync(): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: "POST",
+            url: "/authorization/signOut",
+            errors: {
+                401: `Unauthorized`,
+                500: `Server Error`,
+            },
+        });
+    }
+
+    public static GetStateAsync(): CancelablePromise<UserStateDTO> {
+        return __request(OpenAPI, {
+            method: "GET",
+            url: "/authorization/state",
             errors: {
                 401: `Unauthorized`,
                 500: `Server Error`,

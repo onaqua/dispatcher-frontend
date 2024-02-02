@@ -4,6 +4,7 @@ import "./App.css";
 import { PrivateLayout } from "./layouts/PrivateLayout";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
+import { EventsPage } from "./pages/EventsPage";
 export const App: React.FC = () => {
     const queryClient = new QueryClient({
         defaultOptions: {
@@ -24,6 +25,10 @@ export const App: React.FC = () => {
                     <Route
                         path="/"
                         element={<PrivateLayout element={<HomePage />} />}
+                    />
+                    <Route
+                        path="/events-logs"
+                        element={<PrivateLayout element={<EventsPage />} />}
                     />
                 </Routes>
             </Router>

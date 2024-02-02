@@ -4,9 +4,11 @@ import carsSlice from "./reducers/carsSlice";
 import recipesSlice from "./reducers/recipesSlice";
 import applicationsInPreQueueSlice from "./reducers/applicationsInPreQueueSlice";
 import dispatcherSlice from "./reducers/dispatcherSlice";
+import userSlice from "./reducers/userSlice";
 
 const store = configureStore({
     reducer: {
+        user: userSlice,
         cars: carsSlice,
         recipes: recipesSlice,
         dispatcher: dispatcherSlice,
