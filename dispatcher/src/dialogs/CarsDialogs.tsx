@@ -9,6 +9,8 @@ import { CarsService } from "../services/CarsService";
 import { ApiError } from "../services/core/ApiError";
 import { PaginationProps } from "../types/PaginationProps";
 import { EditableCell } from "./EditableCell";
+import { Permission } from "../components/Permission";
+import { DispatcherPermissions } from "../consts/Permissions";
 
 export type CreateCarDialogProps = {
     isOpen: boolean;
@@ -345,13 +347,15 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
                         }}
                     />
                 </Form>
-                <Button
-                    disabled={editingId !== undefined}
-                    className=" right-0"
-                    onClick={addCar}
-                >
-                    Добавить автомобиль
-                </Button>
+                <Permission need={DispatcherPermissions.CarsCreate}>
+                    <Button
+                        disabled={editingId !== undefined}
+                        className=" right-0"
+                        onClick={addCar}
+                    >
+                        Добавить автомобиль
+                    </Button>
+                </Permission>
             </div>
         </Modal>
     );

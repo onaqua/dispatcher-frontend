@@ -14,6 +14,8 @@ import { ApiError } from "../services/core/ApiError";
 import { setUser } from "../store/reducers/userSlice";
 import { RootState } from "../store/store";
 import { SocketLayout } from "./SocketLayout";
+import { Permission } from "../components/Permission";
+import { DispatcherPermissions } from "../consts/Permissions";
 
 export type PrivateLayoutProps = {
     element: React.ReactNode;
@@ -28,19 +30,6 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
     const [isTourOpen, setTourOpen] = useState<boolean>(false);
 
     const [currentPage, setCurrentPage] = useState("panel");
-
-    const menuItems: MenuItem[] = [
-        {
-            label: <Link to={"/"}>Панель управления</Link>,
-            key: "panel",
-            icon: <GoStack />,
-        },
-        {
-            label: <Link to={"/events-logs"}>Журнал событий</Link>,
-            key: "events-logs",
-            icon: <GoLog />,
-        },
-    ];
 
     const {
         isError: isUserStateErrorLoaded,
@@ -94,7 +83,26 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
                                 onClick={changePageHandler}
                                 mode="horizontal"
                                 className=" w-full"
-                                items={menuItems}
+                                items={[
+                                    {
+                                        label: (
+                                            <Link to={"/"}>
+                                                Панель управления
+                                            </Link>
+                                        ),
+                                        key: "panel",
+                                        icon: <GoStack />,
+                                    },
+                                    {
+                                        label: (
+                                            <Link to={"/events-logs"}>
+                                                Журнал событий
+                                            </Link>
+                                        ),
+                                        key: "events-logs",
+                                        icon: <GoLog />,
+                                    },
+                                ]}
                                 theme="dark"
                             ></Menu>
 

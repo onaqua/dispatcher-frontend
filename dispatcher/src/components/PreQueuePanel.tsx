@@ -1,10 +1,8 @@
-import { PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { Button, Card, Space, Table, message } from "antd";
 import { IoArrowDownCircleOutline } from "react-icons/io5";
 
 import { CSS } from "@dnd-kit/utilities";
-import { useState } from "react";
 import { MdOutlineDelete } from "react-icons/md";
 import { useMutation } from "react-query";
 import { useSelector } from "react-redux";
@@ -12,6 +10,8 @@ import { ProductionApplicationDTO } from "../entities/ApplicationDTO";
 import { ApplicationsService } from "../services/ApplicationsService";
 import { ApiError } from "../services/core/ApiError";
 import { RootState } from "../store/store";
+import { Permission } from "./Permission";
+import { DispatcherPermissions } from "../consts/Permissions";
 
 interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
     "data-row-key": string;
@@ -53,32 +53,6 @@ const Row = (props: RowProps) => {
 export const PreQueuePanel: React.FC = () => {
     const applications = useSelector(
         (state: RootState) => state.applicationsInPreQueue.applications
-    );
-
-    const [selectedApplication, setSelectedApplication] = useState<
-        ProductionApplicationDTO | undefined
-    >();
-
-    const rowSelection = {
-        onChange: (
-            selectedRowKeys: React.Key[],
-            selectedRows: ProductionApplicationDTO[]
-        ) => {
-            if (selectedRowKeys && selectedRows.length > 0) {
-                setSelectedApplication(selectedRows[0]);
-            }
-        },
-        getCheckboxProps: (record: ProductionApplicationDTO) => ({
-            name: record,
-        }),
-    };
-
-    const sensors = useSensors(
-        useSensor(PointerSensor, {
-            activationConstraint: {
-                distance: 1,
-            },
-        })
     );
 
     const {
@@ -143,39 +117,62 @@ export const PreQueuePanel: React.FC = () => {
 
                     <Table.Column
                         title="Клиент"
-                        render={(_, v: ProductionApplicationDTO) =>
-                            v.client.name
-                        }
+                        render={(_, v: ProductionApplicationDTO) => (
+                            <Permission
+                                need={DispatcherPermissions.ClientsView}
+                                forbiddenText="Нет доступа"
+                            >
+                                {v.client.name}
+                            </Permission>
+                        )}
                     ></Table.Column>
 
                     <Table.Column
                         title="Машина"
-                        render={(_, v: ProductionApplicationDTO) =>
-                            v.car.plateNumber
-                        }
+                        render={(_, v: ProductionApplicationDTO) => (
+                            <Permission
+                                need={DispatcherPermissions.CarsView}
+                                forbiddenText="Нет доступа"
+                            >
+                                {v.car.plateNumber}
+                            </Permission>
+                        )}
                     ></Table.Column>
 
                     <Table.Column
                         title="Действия"
                         render={(_, v: ProductionApplicationDTO) => (
                             <Space>
-                                <Button
-                                    type="link"
-                                    size="large"
-                                    onClick={() =>
-                                        handleSubmitApplication(v.id)
+                                <Permission
+                                    need={
+                                        DispatcherPermissions.ApplicationsInQueueCreate
                                     }
-                                    icon={<IoArrowDownCircleOutline />}
-                                />
-                                <Button
-                                    type="link"
-                                    danger
-                                    size="large"
-                                    onClick={() =>
-                                        handleDeleteApplication(v.id)
+                                >
+                                    <Button
+                                        type="link"
+                                        size="large"
+                                        onClick={() =>
+                                            handleSubmitApplication(v.id)
+                                        }
+                                        icon={<IoArrowDownCircleOutline />}
+                                    />
+                                </Permission>
+
+                                <Permission
+                                    need={
+                                        DispatcherPermissions.ApplicationsInPreQueueDelete
                                     }
-                                    icon={<MdOutlineDelete />}
-                                />
+                                >
+                                    <Button
+                                        type="link"
+                                        danger
+                                        size="large"
+                                        onClick={() =>
+                                            handleDeleteApplication(v.id)
+                                        }
+                                        icon={<MdOutlineDelete />}
+                                    />
+                                </Permission>
                             </Space>
                         )}
                     ></Table.Column>

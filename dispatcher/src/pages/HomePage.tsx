@@ -4,6 +4,8 @@ import ClientsPanel from "../components/ClientsPanel";
 import PreQueuePanel from "../components/PreQueuePanel";
 import QueuePanel from "../components/QueuePanel";
 import RecipesPanel from "../components/RecipesPanel";
+import { Permission } from "../components/Permission";
+import { DispatcherPermissions } from "../consts/Permissions";
 
 export const HomePage: React.FC = () => {
     return (
@@ -16,29 +18,53 @@ export const HomePage: React.FC = () => {
                 className="items-center justify-center h-full bg-yellow"
             >
                 <Row gutter={[24, 24]} className=" w-full h-1/6">
-                    <Col xxl={12} xl={24} xs={24} md={24} className=" w-full">
-                        <ClientsPanel />
-                    </Col>
+                    <Permission need={DispatcherPermissions.ClientsView}>
+                        <Col
+                            xxl={12}
+                            xl={24}
+                            xs={24}
+                            md={24}
+                            className=" w-full"
+                        >
+                            <ClientsPanel />
+                        </Col>
+                    </Permission>
 
-                    <Col xxl={12} xl={24} xs={24} md={24}>
-                        <CarsPanel />
-                    </Col>
+                    <Permission need={DispatcherPermissions.CarsView}>
+                        <Col xxl={12} xl={24} xs={24} md={24}>
+                            <CarsPanel />
+                        </Col>
+                    </Permission>
 
-                    <Col span={24}>
-                        <RecipesPanel />
-                    </Col>
+                    <Permission need={DispatcherPermissions.RecipesView}>
+                        <Col span={24}>
+                            <RecipesPanel />
+                        </Col>
+                    </Permission>
                 </Row>
             </Col>
 
             <Col xxl={12} xl={12} xs={24} md={24} className="flex">
                 <Row gutter={[24, 32]} className="w-full h-fit">
-                    <Col xxl={24} xl={24} xs={24} md={24}>
-                        <PreQueuePanel />
-                    </Col>
+                    <Permission
+                        need={
+                            DispatcherPermissions.ApplicationsInPreQueueView
+                        }
+                    >
+                        <Col xxl={24} xl={24} xs={24} md={24}>
+                            <PreQueuePanel />
+                        </Col>
+                    </Permission>
 
-                    <Col xxl={24} xl={24} xs={24} md={24}>
-                        <QueuePanel />
-                    </Col>
+                    <Permission
+                        need={
+                            DispatcherPermissions.ApplicationsInQueueView
+                        }
+                    >
+                        <Col xxl={24} xl={24} xs={24} md={24}>
+                            <QueuePanel />
+                        </Col>
+                    </Permission>
                 </Row>
             </Col>
         </Row>

@@ -25,6 +25,8 @@ import {
     ApplicationDialogProps,
 } from "../dialogs/ApplicatonDialog";
 import { useState } from "react";
+import { Permission } from "./Permission";
+import { DispatcherPermissions } from "../consts/Permissions";
 
 export const QueuePanel: React.FC = () => {
     const applications = useSelector(
@@ -135,7 +137,14 @@ export const QueuePanel: React.FC = () => {
                             title="Клиент"
                             dataIndex="client"
                             render={(client: ProductionClientDTO) => (
-                                <Typography.Text>{client.name}</Typography.Text>
+                                <Permission
+                                    need={DispatcherPermissions.ClientsView}
+                                    forbiddenText="Нет доступа"
+                                >
+                                    <Typography.Text>
+                                        {client.name}
+                                    </Typography.Text>
+                                </Permission>
                             )}
                         />
 
@@ -143,9 +152,14 @@ export const QueuePanel: React.FC = () => {
                             title="Машина"
                             dataIndex="car"
                             render={(car: ProductionCarDTO) => (
-                                <Typography.Text>
-                                    {car.plateNumber}
-                                </Typography.Text>
+                                <Permission
+                                    need={DispatcherPermissions.CarsView}
+                                    forbiddenText="Нет доступа"
+                                >
+                                    <Typography.Text>
+                                        {car.plateNumber}
+                                    </Typography.Text>
+                                </Permission>
                             )}
                         />
 
@@ -228,21 +242,27 @@ export const QueuePanel: React.FC = () => {
                                 application: ProductionApplicationDTO
                             ) => {
                                 return (
-                                    <Button
-                                        disabled={
-                                            application.status !=
-                                            ApplicationStatus.Wait
+                                    <Permission
+                                        need={
+                                            DispatcherPermissions.ApplicationsInQueueDelete
                                         }
-                                        size="large"
-                                        danger
-                                        type="link"
-                                        onClick={() =>
-                                            handleDeleteApplication(
-                                                application.id
-                                            )
-                                        }
-                                        icon={<MdDeleteOutline />}
-                                    ></Button>
+                                    >
+                                        <Button
+                                            disabled={
+                                                application.status !=
+                                                ApplicationStatus.Wait
+                                            }
+                                            size="large"
+                                            danger
+                                            type="link"
+                                            onClick={() =>
+                                                handleDeleteApplication(
+                                                    application.id
+                                                )
+                                            }
+                                            icon={<MdDeleteOutline />}
+                                        ></Button>
+                                    </Permission>
                                 );
                             }}
                         />
