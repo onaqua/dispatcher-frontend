@@ -1,54 +1,15 @@
-import { useSortable } from "@dnd-kit/sortable";
 import { Button, Card, Space, Table, message } from "antd";
 import { IoArrowDownCircleOutline } from "react-icons/io5";
 
-import { CSS } from "@dnd-kit/utilities";
 import { MdOutlineDelete } from "react-icons/md";
 import { useMutation } from "react-query";
 import { useSelector } from "react-redux";
+import { DispatcherPermissions } from "../consts/Permissions";
 import { ProductionApplicationDTO } from "../entities/ApplicationDTO";
 import { ApplicationsService } from "../services/ApplicationsService";
 import { ApiError } from "../services/core/ApiError";
 import { RootState } from "../store/store";
 import { Permission } from "./Permission";
-import { DispatcherPermissions } from "../consts/Permissions";
-
-interface RowProps extends React.HTMLAttributes<HTMLTableRowElement> {
-    "data-row-key": string;
-}
-
-const Row = (props: RowProps) => {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({
-        id: props["data-row-key"],
-    });
-
-    const style: React.CSSProperties = {
-        ...props.style,
-        transform: CSS.Transform.toString(
-            transform && { ...transform, scaleY: 1 }
-        ),
-        transition,
-        cursor: "move",
-        ...(isDragging ? { position: "relative", zIndex: 9999 } : {}),
-    };
-
-    return (
-        <tr
-            {...props}
-            ref={setNodeRef}
-            style={style}
-            {...attributes}
-            {...listeners}
-        />
-    );
-};
 
 export const PreQueuePanel: React.FC = () => {
     const applications = useSelector(

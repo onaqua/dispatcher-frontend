@@ -5,18 +5,16 @@ import {
     Col,
     DatePicker,
     Input,
-    List,
     Row,
-    Space,
     Table,
     Tooltip,
     Typography,
     message,
 } from "antd";
-import dayjs, { Dayjs } from "dayjs";
+import Select, { DefaultOptionType } from "antd/es/select";
+import dayjs from "dayjs";
 import React, { useEffect } from "react";
 import { useMutation } from "react-query";
-import { useDispatch } from "react-redux";
 import { PagedList } from "../entities/PagedList";
 import {
     EventLevel,
@@ -25,9 +23,6 @@ import {
 } from "../entities/ProductionEventDTO";
 import { EventsService } from "../services/AuthorizationService";
 import { ApiError } from "../services/core/ApiError";
-import Select, { DefaultOptionType } from "antd/es/select";
-import { Link } from "react-router-dom";
-import { TracingBeam } from "../components/TracingBeam";
 
 type RangeValue = Parameters<
     NonNullable<React.ComponentProps<typeof DatePicker.RangePicker>["onChange"]>
@@ -44,8 +39,6 @@ type GetEventsProps = {
 };
 
 export const EventsPage: React.FC = () => {
-    const dispatch = useDispatch();
-
     const [rangeDate, setRangeDate] = React.useState<RangeValue>([
         dayjs().add(-7, "day"),
         dayjs().add(1, "day"),

@@ -1,8 +1,9 @@
 import { HubConnectionBuilder, IRetryPolicy } from "@microsoft/signalr";
-import { Button, Card, Result, message } from "antd";
+import { message } from "antd";
 import { useEffect, useState } from "react";
 import { useMutation } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
+import { WavyBackground } from "../components/WavyBackground";
 import { ProductionApplicationDTO } from "../entities/ApplicationDTO";
 import { ApplicationInQueueAdded as ApplicationInQueueUpdated } from "../entities/notifications/ApplicationInQueueAdded";
 import { ApplicationStateUpdated as ApplicationStateUpdatedNotification } from "../entities/notifications/ApplicationStateUpdated";
@@ -25,7 +26,6 @@ import {
 } from "../store/reducers/applicationsInQueueSlice";
 import { setApplication } from "../store/reducers/dispatcherSlice";
 import { RootState } from "../store/store";
-import { WavyBackground } from "../components/WavyBackground";
 
 export type SocketLayoutProps = {
     element: React.ReactNode;
@@ -45,37 +45,29 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
         (state: RootState) => state.dispatcher.application
     );
 
-    const {
-        isLoading: isApplicationsInQueueLoading,
-        isSuccess: isApplicationsInQueueLoadedSuccess,
-        mutateAsync: getApplicationsInQueue,
-    } = useMutation<Array<ProductionApplicationDTO>, ApiError>(
-        () => ApplicationsService.GetAllInQueueAsync(),
-        {
-            onSuccess(data) {
-                dispatch(setApplicationsInQueue(data));
-            },
-            onError(error) {
-                message.error(error.body.Details);
-            },
-        }
-    );
+    const { mutateAsync: getApplicationsInQueue } = useMutation<
+        Array<ProductionApplicationDTO>,
+        ApiError
+    >(() => ApplicationsService.GetAllInQueueAsync(), {
+        onSuccess(data) {
+            dispatch(setApplicationsInQueue(data));
+        },
+        onError(error) {
+            message.error(error.body.Details);
+        },
+    });
 
-    const {
-        isLoading: isApplicationsPreQueueLoading,
-        isSuccess: isApplicationsInPreQueueLoadedSuccess,
-        mutateAsync: getApplicationsInPreQueue,
-    } = useMutation<Array<ProductionApplicationDTO>, ApiError>(
-        () => ApplicationsService.GetAllInPreQueueAsync(),
-        {
-            onSuccess(data) {
-                dispatch(setApplicationsInPreQueue(data));
-            },
-            onError(error) {
-                message.error(error.body.Details);
-            },
-        }
-    );
+    const { mutateAsync: getApplicationsInPreQueue } = useMutation<
+        Array<ProductionApplicationDTO>,
+        ApiError
+    >(() => ApplicationsService.GetAllInPreQueueAsync(), {
+        onSuccess(data) {
+            dispatch(setApplicationsInPreQueue(data));
+        },
+        onError(error) {
+            message.error(error.body.Details);
+        },
+    });
 
     const { mutateAsync: setApplicationInQueueAsync } = useMutation<
         ProductionApplicationDTO,
@@ -128,10 +120,10 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
         },
     });
 
-    const {
-        isLoading: isCheckingProductionConnectionLoading,
-        mutateAsync: checkProductionConnection,
-    } = useMutation<void, ApiError>(
+    const { mutateAsync: checkProductionConnection } = useMutation<
+        void,
+        ApiError
+    >(
         async () => {
             message.loading(
                 "Проверяем подключение к вашему производству...",
@@ -281,10 +273,9 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
                     </p>
                     <p className="text-base md:text-lg mt-4 text-white font-normal inter-var text-center">
                         Производство автоматически подключится через несколько
-                        секунд. <br /> Если проблема долго не исчезает, то
-                        вам необходимо проверить интернет подключение на
-                        компьютере, где установлена программа SmartMix или
-                        обновить страницу
+                        секунд. <br /> Если проблема долго не исчезает, то вам
+                        необходимо проверить интернет подключение на компьютере,
+                        где установлена программа SmartMix или обновить страницу
                     </p>
                 </WavyBackground>
             )}

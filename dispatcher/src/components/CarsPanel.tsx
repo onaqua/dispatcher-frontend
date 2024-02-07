@@ -21,7 +21,7 @@ export const CarsPanel: React.FC = () => {
 
     const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
 
-    const { isLoading, isError, mutateAsync: searchCarsAsync } = useMutation<
+    const { isLoading, mutateAsync: searchCarsAsync } = useMutation<
         PagedList<ProductionCarDTO>,
         ApiError,
         PaginationProps

@@ -13,18 +13,6 @@ export type AddApplicationInPreQueueRequest = {
     invoice: string;
 };
 
-type Layer = {
-    id: -1;
-    number: 1;
-    volume: number;
-    recipeId: number;
-};
-
-type Product = {
-    id: number;
-    name: string;
-};
-
 export type UpdateCarRequest = {
     volume?: number;
     plateNumber?: string;

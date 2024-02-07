@@ -21,7 +21,6 @@ export type ApplicationDialogProps = {
 
 export const ApplicationDialog: React.FC<ApplicationDialogProps> = ({
     isOpen = false,
-    isOperatorQueue = false,
     applicationId,
     onClose,
     onOk,
@@ -32,20 +31,18 @@ export const ApplicationDialog: React.FC<ApplicationDialogProps> = ({
         (state: RootState) => state.dispatcher.application
     );
 
-    const {
-        isLoading: isApplicationLoading,
-        mutateAsync: getApplicationAsync,
-    } = useMutation<ProductionApplicationDTO, ApiError, number>(
-        (applicationId) => ApplicationsService.GetInQueueAsync(applicationId),
-        {
-            onSuccess(data) {
-                dispatch(setApplication(data));
-            },
-            onError(error) {
-                message.error(error.body.Details);
-            },
-        }
-    );
+    const { mutateAsync: getApplicationAsync } = useMutation<
+        ProductionApplicationDTO,
+        ApiError,
+        number
+    >((applicationId) => ApplicationsService.GetInQueueAsync(applicationId), {
+        onSuccess(data) {
+            dispatch(setApplication(data));
+        },
+        onError(error) {
+            message.error(error.body.Details);
+        },
+    });
 
     useEffect(() => {
         if (applicationId) {

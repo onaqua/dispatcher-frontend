@@ -1,26 +1,17 @@
-import {
-    Button,
-    Card,
-    Divider,
-    Input,
-    Select,
-    Typography,
-    message,
-} from "antd";
-import { DefaultOptionType } from "antd/es/select";
+import { Button, Card, Input, Select, message } from "antd";
 import { ChangeEvent, useState } from "react";
-import ProductionClientDTO from "../entities/ProductionClientDTO";
-import { ApiError } from "../services/core/ApiError";
-import { ClientsService } from "../services/ClientsService";
 import { useMutation } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
-import { setClient, setInvoice } from "../store/reducers/dispatcherSlice";
-import { RootState } from "../store/store";
-import { PagedList } from "../entities/PagedList";
-import { TypedOption } from "../types/TypedOption";
-import { PermissionsService } from "../services/PermissionsService";
 import { DispatcherPermissions } from "../consts/Permissions";
 import { CreateClientDialog } from "../dialogs/ClientsDialog";
+import { PagedList } from "../entities/PagedList";
+import ProductionClientDTO from "../entities/ProductionClientDTO";
+import { ClientsService } from "../services/ClientsService";
+import { PermissionsService } from "../services/PermissionsService";
+import { ApiError } from "../services/core/ApiError";
+import { setClient, setInvoice } from "../store/reducers/dispatcherSlice";
+import { RootState } from "../store/store";
+import { TypedOption } from "../types/TypedOption";
 
 export const ClientsPanel: React.FC = () => {
     const dispatch = useDispatch();
@@ -31,7 +22,7 @@ export const ClientsPanel: React.FC = () => {
     >([]);
 
     const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
-    const { isLoading, isError, mutateAsync: searchCarsAsync } = useMutation<
+    const { isLoading, mutateAsync: searchCarsAsync } = useMutation<
         PagedList<ProductionClientDTO>,
         ApiError
     >(() => ClientsService.SearchAsync(query, 0, 5), {

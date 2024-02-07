@@ -1,6 +1,5 @@
 import { Layout, Menu, MenuProps, Result, Row, Spin, message } from "antd";
 import { Content, Header } from "antd/es/layout/layout";
-import MenuItem from "antd/es/menu/MenuItem";
 import { useState } from "react";
 import { GoLog, GoStack } from "react-icons/go";
 import { useMutation, useQuery } from "react-query";
@@ -14,14 +13,10 @@ import { ApiError } from "../services/core/ApiError";
 import { setUser } from "../store/reducers/userSlice";
 import { RootState } from "../store/store";
 import { SocketLayout } from "./SocketLayout";
-import { Permission } from "../components/Permission";
-import { DispatcherPermissions } from "../consts/Permissions";
 
 export type PrivateLayoutProps = {
     element: React.ReactNode;
 };
-
-type MenuItem = Required<MenuProps>["items"][number];
 
 export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
     const dispatch = useDispatch();

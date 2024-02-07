@@ -1,22 +1,22 @@
-import {
-    Button,
-    Card,
-    Divider,
-    Form,
-    Input,
-    Space,
-    Spin,
-    Typography,
-    message,
-} from "antd";
+import
+    {
+        Button,
+        Card,
+        Divider,
+        Form,
+        Input,
+        Space,
+        Spin,
+        Typography,
+        message,
+    } from "antd";
 import { useMutation } from "react-query";
 import { useNavigate } from "react-router-dom";
+import { CardContainer, CardItem } from "../components/3d-card";
+import { BackgroundBeams } from "../components/BackgroundBeams";
 import { AuthorizationService } from "../services/AuthorizationService";
 import { ApiError } from "../services/core/ApiError";
 import { LoginRequest } from "../services/requests/LoginRequest";
-import { Meteors } from "../components/Meteors";
-import { BackgroundBeams } from "../components/BackgroundBeams";
-import { CardContainer, CardItem } from "../components/3d-card";
 
 export type LoginFields = {
     email: string;

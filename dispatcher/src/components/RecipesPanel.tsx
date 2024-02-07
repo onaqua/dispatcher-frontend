@@ -1,19 +1,19 @@
-import {
-    Button,
-    Card,
-    Checkbox,
-    Col,
-    Input,
-    InputNumber,
-    List,
-    Row,
-    Segmented,
-    Select,
-    Skeleton,
-    Space,
-    Typography,
-    message,
-} from "antd";
+import
+    {
+        Button,
+        Card,
+        Checkbox,
+        Col,
+        Input,
+        InputNumber,
+        List,
+        Row,
+        Segmented,
+        Select,
+        Space,
+        Typography,
+        message,
+    } from "antd";
 import { SegmentedValue } from "antd/es/segmented";
 import { useEffect, useState } from "react";
 import { useMutation } from "react-query";
@@ -29,13 +29,14 @@ import { MixersService } from "../services/MixersService";
 import { RecipesService } from "../services/RecipesService";
 import { ApiError } from "../services/core/ApiError";
 import { AddApplicationInPreQueueRequest } from "../services/requests/LoginRequest";
-import {
-    setCategory,
-    setMixer,
-    setQuickApplication,
-    setRecipe,
-    setVolume,
-} from "../store/reducers/dispatcherSlice";
+import
+    {
+        setCategory,
+        setMixer,
+        setQuickApplication,
+        setRecipe,
+        setVolume,
+    } from "../store/reducers/dispatcherSlice";
 import { RootState } from "../store/store";
 import { PaginationProps } from "../types/PaginationProps";
 import { TypedOption } from "../types/TypedOption";
@@ -52,7 +53,6 @@ interface RecipesPaginationProps extends PaginationProps {
 export const RecipesPanel: React.FC = () => {
     const dispatch = useDispatch();
     const [recipesQuery, setRecipesQuery] = useState("");
-    const [categoriesQuery, setCategoriesQuery] = useState("");
 
     const carId = useSelector((state: RootState) => state.dispatcher.carId);
     const mixer = useSelector((state: RootState) => state.dispatcher.mixer);
@@ -88,8 +88,6 @@ export const RecipesPanel: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<number>(1);
 
     const {
-        isLoading: isRecipesLoading,
-        isError: isRecipesLoadingError,
         mutateAsync: searchRecipesAsync,
     } = useMutation<
         PagedList<ProductionRecipeDTO>,
@@ -127,8 +125,6 @@ export const RecipesPanel: React.FC = () => {
     );
 
     const {
-        isLoading: isCategoriesLoading,
-        isError: isCategoriesLoadingError,
         mutateAsync: searchCategoriesAsync,
     } = useMutation<
         PagedList<ProductionCategoryDTO>,
@@ -160,8 +156,6 @@ export const RecipesPanel: React.FC = () => {
     );
 
     const {
-        isLoading: isMixersLoading,
-        isError: isMixersLoadingError,
         mutateAsync: getMixersAsync,
     } = useMutation<Array<ProductionMixerDTO>, ApiError>(
         () => MixersService.GetAsync(),
@@ -229,8 +223,6 @@ export const RecipesPanel: React.FC = () => {
     };
 
     const handleSearchCategoriesChanged = async (query: string) => {
-        setCategoriesQuery(query);
-
         await searchCategoriesAsync({
             query: query,
             page: 1,
@@ -251,29 +243,6 @@ export const RecipesPanel: React.FC = () => {
             page: currentPage,
             pageSize: 5,
         });
-    };
-
-    const isMixersAvailable = (): boolean => {
-        return mixers && mixers.length > 0;
-    };
-
-    const isApplicationCanStart = () => {
-        const isCategorySelected = categoryId !== -1;
-        const isRecipeSelected = recipeId !== 0;
-        const isVolumeSelected = volume !== 0;
-        const isMixerSelected = mixer !== 0;
-
-        return (
-            isMixersAvailable() &&
-            isCategorySelected &&
-            isRecipeSelected &&
-            isVolumeSelected &&
-            isMixerSelected
-        );
-    };
-
-    const isCategorySelected = () => {
-        return categoryId !== -1;
     };
 
     const handleVolumeChanged = (value: number | null) => {
