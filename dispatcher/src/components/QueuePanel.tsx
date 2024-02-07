@@ -49,7 +49,7 @@ export const QueuePanel: React.FC = () => {
         }
     );
 
-    async function onDeleteConfirm(applicationId: number) {
+    async function handleDeleteApplication(applicationId: number) {
         await deleteApplicationAsync(applicationId);
     }
 
@@ -78,14 +78,14 @@ export const QueuePanel: React.FC = () => {
                 onOk={closeApplicationDialog}
             />
 
-            <Card className=" w-full h-full">
-                <div className=" overflow-auto">
+            <Card className=" h-full" title="Очередь оператора">
+                <div className=" overflow-hidden">
                     <Table
                         size="small"
-                        className=" h-full"
+                        className=" min-h-80 max-h-80"
                         loading={isDeleteLoading}
                         dataSource={applications}
-                        pagination={{ pageSize: 4 }}
+                        pagination={{ pageSize: 3 }}
                         locale={{ emptyText: "Нет заявок" }}
                     >
                         <Table.Column
@@ -228,31 +228,21 @@ export const QueuePanel: React.FC = () => {
                                 application: ProductionApplicationDTO
                             ) => {
                                 return (
-                                    <Popconfirm
-                                        title="Вы действительно хотите удалить заявку из очереди?"
-                                        okText="Да, удалить"
-                                        cancelText="Нет"
+                                    <Button
                                         disabled={
                                             application.status !=
                                             ApplicationStatus.Wait
                                         }
-                                        onConfirm={() => {
-                                            onDeleteConfirm(
-                                                application.id as number
-                                            );
-                                        }}
-                                    >
-                                        <Button
-                                            disabled={
-                                                application.status !=
-                                                ApplicationStatus.Wait
-                                            }
-                                            size="large"
-                                            danger
-                                            type="link"
-                                            icon={<MdDeleteOutline />}
-                                        ></Button>
-                                    </Popconfirm>
+                                        size="large"
+                                        danger
+                                        type="link"
+                                        onClick={() =>
+                                            handleDeleteApplication(
+                                                application.id
+                                            )
+                                        }
+                                        icon={<MdDeleteOutline />}
+                                    ></Button>
                                 );
                             }}
                         />

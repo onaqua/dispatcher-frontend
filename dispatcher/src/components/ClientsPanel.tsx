@@ -20,6 +20,7 @@ import { PagedList } from "../entities/PagedList";
 import { TypedOption } from "../types/TypedOption";
 import { PermissionsService } from "../services/PermissionsService";
 import { DispatcherPermissions } from "../consts/Permissions";
+import { CreateClientDialog } from "../dialogs/ClientsDialog";
 
 export const ClientsPanel: React.FC = () => {
     const dispatch = useDispatch();
@@ -29,6 +30,7 @@ export const ClientsPanel: React.FC = () => {
         Array<TypedOption<ProductionClientDTO>>
     >([]);
 
+    const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
     const { isLoading, isError, mutateAsync: searchCarsAsync } = useMutation<
         PagedList<ProductionClientDTO>,
         ApiError
@@ -36,7 +38,7 @@ export const ClientsPanel: React.FC = () => {
         onSuccess(data) {
             const options = data.items.map<TypedOption<ProductionClientDTO>>(
                 (car) => ({
-                    value: car.name,
+                    value: car.id,
                     label: car.name,
                     data: car,
                 })
@@ -65,40 +67,49 @@ export const ClientsPanel: React.FC = () => {
 
     return (
         <>
-            <div className=" w-full space-y-2">
-                <Input
-                    value={invoice}
-                    onChange={handleInvoiceChanged}
-                    size="small"
-                    id="invoice-input"
-                    placeholder="Введите номер накладной"
-                    className=" w-full"
-                />
+            <CreateClientDialog
+                isOpen={isDialogOpen}
+                onClose={() => setDialogOpen(false)}
+                onOk={() => setDialogOpen(false)}
+            />
 
-                <div className=" w-full space-x-2 flex">
-                    {PermissionsService.hasPermission(
-                        DispatcherPermissions.ClientsCreate
-                    ) && (
-                        <Button type="primary" size="small">
-                            Клиенты
-                        </Button>
-                    )}
-
-                    <Select
-                        showSearch
-                        id="client-input"
-                        size="small"
-                        placeholder="Введите имя клиента для поиска"
-                        options={options}
-                        loading={isLoading}
-                        searchValue={query}
-                        onSearch={handleSearchChanged}
-                        onSelect={(_, e) => handleSelect(e.data)}
-                        onFocus={() => handleSearchChanged("")}
+            <Card className=" h-full" title="Панель клиентов">
+                <div className=" h-full w-full space-y-2">
+                    <Input
+                        value={invoice}
+                        onChange={handleInvoiceChanged}
+                        id="invoice-input"
+                        placeholder="Введите номер накладной"
                         className=" w-full"
-                    ></Select>
+                    />
+
+                    <div className=" w-full space-x-2 flex">
+                        {PermissionsService.hasPermission(
+                            DispatcherPermissions.ClientsCreate
+                        ) && (
+                            <Button
+                                type="dashed"
+                                onClick={() => setDialogOpen(true)}
+                            >
+                                Все клиенты
+                            </Button>
+                        )}
+
+                        <Select
+                            showSearch
+                            id="client-input"
+                            placeholder="Введите имя"
+                            options={options}
+                            loading={isLoading}
+                            searchValue={query}
+                            onSearch={handleSearchChanged}
+                            onSelect={(_, e) => handleSelect(e.data)}
+                            onFocus={() => handleSearchChanged("")}
+                            className=" w-full"
+                        ></Select>
+                    </div>
                 </div>
-            </div>
+            </Card>
         </>
     );
 };

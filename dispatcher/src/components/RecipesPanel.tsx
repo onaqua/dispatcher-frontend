@@ -3,19 +3,17 @@ import {
     Card,
     Checkbox,
     Col,
-    Divider,
     Input,
     InputNumber,
+    List,
     Row,
     Segmented,
     Select,
-    Spin,
-    Table,
-    Tooltip,
+    Skeleton,
+    Space,
     Typography,
     message,
 } from "antd";
-import DisabledContext from "antd/es/config-provider/DisabledContext";
 import { SegmentedValue } from "antd/es/segmented";
 import { useEffect, useState } from "react";
 import { useMutation } from "react-query";
@@ -34,6 +32,7 @@ import { AddApplicationInPreQueueRequest } from "../services/requests/LoginReque
 import {
     setCategory,
     setMixer,
+    setQuickApplication,
     setRecipe,
     setVolume,
 } from "../store/reducers/dispatcherSlice";
@@ -59,6 +58,9 @@ export const RecipesPanel: React.FC = () => {
     const mixer = useSelector((state: RootState) => state.dispatcher.mixer);
     const volume = useSelector((state: RootState) => state.dispatcher.volume);
     const invoice = useSelector((state: RootState) => state.dispatcher.invoice);
+    const isQuickApplication = useSelector(
+        (state: RootState) => state.dispatcher.isQuickApplication
+    );
 
     const [mixers, setMixers] = useState<Array<ProductionMixerDTO>>([]);
 
@@ -210,6 +212,8 @@ export const RecipesPanel: React.FC = () => {
             mixerNumber: mixer!,
         };
 
+        console.log("application add request:", request);
+
         await addApplicationInPreQueueAsync(request);
     };
 
@@ -232,6 +236,10 @@ export const RecipesPanel: React.FC = () => {
             page: 1,
             pageSize: 5,
         });
+    };
+
+    const handleQuickApplicationChanged = async (value: boolean) => {
+        dispatch(setQuickApplication(value));
     };
 
     const handleCategorySelected = async (category: ProductionCategoryDTO) => {
@@ -284,166 +292,136 @@ export const RecipesPanel: React.FC = () => {
 
     return (
         <>
-            <Card className="w-full h-full" id="recipes-card">
-                <Spin spinning={isApplicationLoading} className=" h-full">
-                    <div className="space-y-3 w-full h-full">
-                        <Select
-                            showSearch
-                            size="small"
-                            className="w-full"
-                            id="category-select"
-                            options={categories}
-                            onFocus={(_) => handleSearchCategoriesChanged("")}
-                            onSearch={handleSearchCategoriesChanged}
-                            onSelect={(
-                                _,
-                                e: TypedOption<ProductionCategoryDTO>
-                            ) => handleCategorySelected(e.data)}
-                            placeholder="Введите название категории рецепта для поиска"
-                        />
+            <Card title="Панель рецептов">
+                <Space className="mb-2 w-full" direction="vertical" size={24}>
+                    <Row gutter={[32, 16]}>
+                        <Col span={12}>
+                            <Select
+                                showSearch
+                                placeholder="Выберите категорию рецепта"
+                                options={categories}
+                                onSearch={handleSearchCategoriesChanged}
+                                onFocus={() =>
+                                    handleSearchCategoriesChanged("")
+                                }
+                                onSelect={(_, v) =>
+                                    handleCategorySelected(v.data)
+                                }
+                                className=" w-full"
+                            ></Select>
+                        </Col>
 
-                        <DisabledContext.Provider value={!isCategorySelected()}>
-                            <Input
-                                size="small"
-                                id="recipe-search"
-                                className="w-full"
+                        <Col span={12}>
+                            <Input.Search
                                 value={recipesQuery}
-                                onChange={(e) =>
-                                    handleSearchRecipesChanged(e.target.value)
+                                onChange={({ target }) =>
+                                    handleSearchRecipesChanged(target.value)
                                 }
                                 placeholder="Введите название рецепта для поиска"
-                            />
+                            ></Input.Search>
+                        </Col>
+                    </Row>
 
-                            <Table
-                                id="recipes-table"
-                                className=" cursor-pointer h-80"
-                                onRow={(recipe) => ({
-                                    onClick: () =>
-                                        handleSelectRecipe(recipe.id),
-                                })}
+                    <Row>
+                        <Col span={24}>
+                            <List
+                                className="mt-4 min-h-80"
+                                dataSource={recipes.items}
+                                rootClassName="min-h-80"
                                 pagination={{
                                     pageSize: 5,
                                     current: currentPage,
                                     total: recipes.totalItems,
+                                    className: "flex justify-center bottom-0",
                                     onChange: handlePageChanged,
                                 }}
-                                dataSource={recipes.items}
-                                size="small"
-                                virtual
-                                locale={{ emptyText: "Нет рецептов" }}
-                                loading={isRecipesLoading}
+                                renderItem={(recipe) => (
+                                    <List.Item
+                                        className="cursor-pointer w-full"
+                                        onClick={() =>
+                                            handleSelectRecipe(recipe.id)
+                                        }
+                                    >
+                                        <div className=" flex items-center justify-between w-full space-x-4">
+                                            <Checkbox
+                                                title="Выбрать"
+                                                checked={recipeId == recipe.id}
+                                            ></Checkbox>
+                                            <List.Item.Meta
+                                                title={
+                                                    <Typography.Link>
+                                                        {recipe.name}
+                                                    </Typography.Link>
+                                                }
+                                            />
+                                        </div>
+                                    </List.Item>
+                                )}
+                            ></List>
+                        </Col>
+                    </Row>
+
+                    <Row gutter={[36, 16]}>
+                        {mixers && mixers.length && (
+                            <Col xxl={12} xl={12} md={12} xs={24} lg={24}>
+                                <Segmented
+                                    className=" w-full"
+                                    defaultChecked={true}
+                                    defaultValue={mixers[0].number}
+                                    title="Выберите миксер"
+                                    value={mixer}
+                                    placeholder="Выберите миксер"
+                                    options={mixers.map((e) => ({
+                                        label: `${e.number}-й смеситель`,
+                                        value: e.number,
+                                    }))}
+                                    onChange={handleMixerChanged}
+                                ></Segmented>
+                            </Col>
+                        )}
+
+                        <Col xxl={12} xl={12} md={12} xs={24} lg={24}>
+                            <InputNumber
+                                onChange={handleVolumeChanged}
+                                placeholder="Введите объём заявки"
+                                className=" w-full"
+                            ></InputNumber>
+                        </Col>
+                    </Row>
+
+                    <Row gutter={[32, 16]}>
+                        <Col xxl={12} xl={12} md={12} xs={24} lg={24}>
+                            <Checkbox
+                                value={isQuickApplication}
+                                onChange={(e) =>
+                                    handleQuickApplicationChanged(
+                                        e.target.checked
+                                    )
+                                }
                             >
-                                <Table.Column
-                                    render={(_, e: RecipeOption) => (
-                                        <Checkbox checked={e.id === recipeId} />
-                                    )}
-                                ></Table.Column>
-                                <Table.Column
-                                    title="Название рецепта"
-                                    dataIndex="name"
-                                ></Table.Column>
-                            </Table>
-                            <div className="min-h-14">
-                                <Row>
-                                    <Col xs={24} xl={8}>
-                                        <div
-                                            className=" w-full flex space-x-2 items-center"
-                                            id="mixer-select"
-                                        >
-                                            {!isMixersLoading && (
-                                                <>
-                                                    <Typography.Text>
-                                                        Смеситель:{" "}
-                                                    </Typography.Text>
+                                Быстрая заявка
+                            </Checkbox>
+                        </Col>
 
-                                                    {isMixersAvailable() ? (
-                                                        <Segmented
-                                                            onChange={
-                                                                handleMixerChanged
-                                                            }
-                                                            defaultValue={
-                                                                mixers[0].number
-                                                            }
-                                                            options={mixers.map(
-                                                                (mixer) =>
-                                                                    mixer.number
-                                                            )}
-                                                        />
-                                                    ) : (
-                                                        <Typography.Text>
-                                                            Нет доступных
-                                                            смесителей
-                                                        </Typography.Text>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
-                                    </Col>
-
-                                    <Col xs={24} xl={8}>
-                                        <div
-                                            className=" w-full flex space-x-2 items-center"
-                                            id="volume-select"
-                                        >
-                                            <Typography.Text className="w-full">
-                                                Объём:{" "}
-                                            </Typography.Text>
-                                            <InputNumber
-                                                min={0}
-                                                onChange={handleVolumeChanged}
-                                                defaultValue={volume}
-                                                value={volume}
-                                                placeholder="Объём"
-                                                className="w-full"
-                                            ></InputNumber>
-                                        </div>
-                                    </Col>
-                                </Row>
-                            </div>
-                        </DisabledContext.Provider>
-
-                        <Divider />
-
-                        <div className="w-full text-right">
-                            <Row justify="center">
-                                <Col
-                                    xs={24}
-                                    xl={12}
-                                    xxl={12}
-                                    id="is-quick-application"
-                                >
-                                    <Checkbox
-                                        className="w-full"
-                                        disabled={!isApplicationCanStart()}
-                                    >
-                                        Быстрая заявка
-                                    </Checkbox>
-                                </Col>
-
-                                <Col
-                                    xs={24}
-                                    xl={12}
-                                    xxl={12}
-                                    id="is-quick-application"
-                                >
-                                    <Tooltip
-                                        color="geekblue"
-                                        title="После нажатия на кнопку, созданная вами заявка отправится в предварительную очередь."
-                                    >
-                                        <Button
-                                            id="create-application-button"
-                                            type="primary"
-                                            disabled={!isApplicationCanStart()}
-                                            onClick={handleAddApplication}
-                                        >
-                                            Создать заявку
-                                        </Button>
-                                    </Tooltip>
-                                </Col>
-                            </Row>
-                        </div>
-                    </div>
-                </Spin>
+                        <Col
+                            xxl={12}
+                            xl={12}
+                            md={12}
+                            xs={24}
+                            lg={24}
+                            className=" right-0 flex justify-end"
+                        >
+                            <Button
+                                type="primary"
+                                loading={isApplicationLoading}
+                                onClick={handleAddApplication}
+                                className="right-0"
+                            >
+                                Создать заявку
+                            </Button>
+                        </Col>
+                    </Row>
+                </Space>
             </Card>
         </>
     );

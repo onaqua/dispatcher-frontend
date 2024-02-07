@@ -27,6 +27,7 @@ import { EventsService } from "../services/AuthorizationService";
 import { ApiError } from "../services/core/ApiError";
 import Select, { DefaultOptionType } from "antd/es/select";
 import { Link } from "react-router-dom";
+import { TracingBeam } from "../components/TracingBeam";
 
 type RangeValue = Parameters<
     NonNullable<React.ComponentProps<typeof DatePicker.RangePicker>["onChange"]>
@@ -161,9 +162,27 @@ export const EventsPage: React.FC = () => {
     }, []);
 
     return (
-        <div className=" space-y-2">
+        <div className=" space-y-2 w-full p-8 h-full">
             <Card>
                 <Row style={{ marginBottom: 8 }}>
+                    <Col
+                        xl={6}
+                        lg={6}
+                        md={6}
+                        sm={24}
+                        xs={24}
+                        className="gutter-row p-2"
+                    >
+                        <DatePicker.RangePicker
+                            allowClear={false}
+                            className=" w-full"
+                            format="DD.MM.YYYY"
+                            value={rangeDate}
+                            onChange={handleDateChanged}
+                            placeholder={["Дата начала", "Дата окончания"]}
+                        ></DatePicker.RangePicker>
+                    </Col>
+
                     <Col
                         xl={6}
                         lg={6}
@@ -176,7 +195,7 @@ export const EventsPage: React.FC = () => {
                             className=" w-full"
                             popupMatchSelectWidth={false}
                             allowClear
-                            placeholder="Название объекта"
+                            placeholder="Уровень события"
                             value={eventsLevel}
                             options={levelOptions}
                             onClear={() => handleLevelChanged(null)}
@@ -221,34 +240,20 @@ export const EventsPage: React.FC = () => {
                             }
                         ></Input>
                     </Col>
-
-                    <Col
-                        xl={6}
-                        lg={6}
-                        md={6}
-                        sm={24}
-                        xs={24}
-                        className="gutter-row p-2"
-                    >
-                        <DatePicker.RangePicker
-                            className=" w-full"
-                            format="DD.MM.YYYY"
-                            value={rangeDate}
-                            onChange={handleDateChanged}
-                            placeholder={["Дата начала", "Дата окончания"]}
-                        ></DatePicker.RangePicker>
-                    </Col>
                 </Row>
             </Card>
 
             <Card>
                 <Table
+                    className=""
+                    locale={{ emptyText: "Нет событий" }}
                     loading={isLoading}
                     dataSource={events.items}
                     getContainerWidth={() => document.body.clientWidth - 240}
+                    rowClassName="mb-10"
                     pagination={{
                         defaultPageSize: pageSize,
-                        pageSizeOptions: [5, 10, 25, 50],
+                        pageSizeOptions: [5, 10, 25],
                         pageSize: pageSize,
                         current: currentPage,
                         total: events.totalItems,

@@ -1,7 +1,8 @@
-import { Button, Select, message } from "antd";
+import { Button, Card, Select, message } from "antd";
 import { useState } from "react";
 import { useMutation } from "react-query";
 import { useDispatch } from "react-redux";
+import { CreateCarDialog } from "../dialogs/CarsDialogs";
 import { PagedList } from "../entities/PagedList";
 import { ProductionCarDTO } from "../entities/ProductionCarDTO";
 import { CarsService } from "../services/CarsService";
@@ -9,8 +10,6 @@ import { ApiError } from "../services/core/ApiError";
 import { setCar } from "../store/reducers/dispatcherSlice";
 import { PaginationProps } from "../types/PaginationProps";
 import { TypedOption } from "../types/TypedOption";
-import { PermissionsService } from "../services/PermissionsService";
-import { DispatcherPermissions } from "../consts/Permissions";
 
 export const CarsPanel: React.FC = () => {
     const dispatch = useDispatch();
@@ -19,6 +18,8 @@ export const CarsPanel: React.FC = () => {
     const [options, setOptions] = useState<
         Array<TypedOption<ProductionCarDTO>>
     >([]);
+
+    const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
 
     const { isLoading, isError, mutateAsync: searchCarsAsync } = useMutation<
         PagedList<ProductionCarDTO>,
@@ -36,7 +37,7 @@ export const CarsPanel: React.FC = () => {
                 const fetchedOptions = data.items.map<
                     TypedOption<ProductionCarDTO>
                 >((car) => ({
-                    value: car.plateNumber,
+                    value: car.id,
                     label: car.plateNumber,
                     data: car,
                 }));
@@ -56,33 +57,35 @@ export const CarsPanel: React.FC = () => {
     };
 
     const handleSelect = async (car: ProductionCarDTO) => {
+        console.log("selected car:", car);
         dispatch(setCar(car.id));
     };
 
     return (
         <>
-            <div className="space-x-2 flex w-full">
-                {PermissionsService.hasPermission(
-                    DispatcherPermissions.CarsCreate
-                ) && (
-                    <Button size="small" type="primary">
-                        Машины
+            <CreateCarDialog
+                isOpen={isDialogOpen}
+                onClose={() => setDialogOpen(false)}
+                onOk={() => setDialogOpen(false)}
+            />
+            <Card className=" h-full" title="Панель автомобилей">
+                <div className="flex space-x-2">
+                    <Button type="dashed" onClick={() => setDialogOpen(true)}>
+                        Все машины
                     </Button>
-                )}
-                <Select
-                    showSearch
-                    className="w-full"
-                    size="small"
-                    id="car-input"
-                    options={options}
-                    loading={isLoading}
-                    searchValue={query}
-                    onSelect={(_, e) => handleSelect(e.data)}
-                    onSearch={handleSearchChanged}
-                    onFocus={(_) => handleSearchChanged("")}
-                    placeholder="Введите номер машины для поиска"
-                ></Select>
-            </div>
+                    <Select
+                        showSearch
+                        className="w-full"
+                        placeholder="Введите номер"
+                        options={options}
+                        loading={isLoading}
+                        searchValue={query}
+                        onSearch={handleSearchChanged}
+                        onSelect={(_, e) => handleSelect(e.data)}
+                        onFocus={() => handleSearchChanged("")}
+                    ></Select>
+                </div>
+            </Card>
         </>
     );
 };

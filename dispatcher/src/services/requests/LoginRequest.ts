@@ -24,3 +24,23 @@ type Product = {
     id: number;
     name: string;
 };
+
+export type UpdateCarRequest = {
+    volume?: number;
+    plateNumber?: string;
+};
+
+export type UpdateClientRequest = {
+    name?: string;
+    address?: string;
+};
+
+export type CreateCarRequest = {
+    volume?: number;
+    plateNumber?: string;
+};
+
+export type CreateClientRequest = {
+    name?: string;
+    address?: string;
+};

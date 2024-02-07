@@ -1,49 +1,46 @@
-import { Card, Col, Grid, Row, Space } from "antd";
-import ClientsPanel from "../components/ClientsPanel";
+import { Col, Row } from "antd";
 import CarsPanel from "../components/CarsPanel";
-import RecipesPanel from "../components/RecipesPanel";
+import ClientsPanel from "../components/ClientsPanel";
 import PreQueuePanel from "../components/PreQueuePanel";
 import QueuePanel from "../components/QueuePanel";
-import { PermissionsService } from "../services/PermissionsService";
-import { DispatcherPermissions } from "../consts/Permissions";
+import RecipesPanel from "../components/RecipesPanel";
 
 export const HomePage: React.FC = () => {
     return (
-        <>
-            <Row className=" h-full w-full">
-                <Col xl={12} xs={24} className="space-y-2 p-2">
-                    <Card className=" h-1/5">
-                        <Space direction="vertical" className=" w-full">
-                            {PermissionsService.hasPermission(
-                                DispatcherPermissions.ClientsView
-                            ) && <ClientsPanel />}
+        <Row className="p-8 h-screen">
+            <Col
+                xxl={12}
+                xl={12}
+                xs={24}
+                md={24}
+                className="items-center justify-center h-full bg-yellow"
+            >
+                <Row gutter={[24, 24]} className=" w-full h-1/6">
+                    <Col xxl={12} xl={24} xs={24} md={24} className=" w-full">
+                        <ClientsPanel />
+                    </Col>
 
-                            {PermissionsService.hasPermission(
-                                DispatcherPermissions.CarsView
-                            ) && <CarsPanel />}
-                        </Space>
-                    </Card>
-                    <div className=" h-4/5">
-                        {PermissionsService.hasPermission(
-                            DispatcherPermissions.RecipesView
-                        ) && <RecipesPanel />}
-                    </div>
-                </Col>
+                    <Col xxl={12} xl={24} xs={24} md={24}>
+                        <CarsPanel />
+                    </Col>
 
-                <Col xl={12} xs={24} className=" space-y-2 p-2">
-                    <div className=" h-1/2">
-                        {PermissionsService.hasPermission(
-                            DispatcherPermissions.ApplicationsInPreQueueView
-                        ) && <PreQueuePanel />}
-                    </div>
+                    <Col span={24}>
+                        <RecipesPanel />
+                    </Col>
+                </Row>
+            </Col>
 
-                    <div className=" h-1/2">
-                        {PermissionsService.hasPermission(
-                            DispatcherPermissions.ApplicationsInQueueView
-                        ) && <QueuePanel />}
-                    </div>
-                </Col>
-            </Row>
-        </>
+            <Col xxl={12} xl={12} xs={24} md={24} className="flex">
+                <Row gutter={[24, 32]} className="w-full h-fit">
+                    <Col xxl={24} xl={24} xs={24} md={24}>
+                        <PreQueuePanel />
+                    </Col>
+
+                    <Col xxl={24} xl={24} xs={24} md={24}>
+                        <QueuePanel />
+                    </Col>
+                </Row>
+            </Col>
+        </Row>
     );
 };

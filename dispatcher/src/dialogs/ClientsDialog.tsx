@@ -4,25 +4,25 @@ import { IoSave } from "react-icons/io5";
 import { MdCancel, MdDelete, MdEdit } from "react-icons/md";
 import { useMutation, useQuery } from "react-query";
 import { PagedList } from "../entities/PagedList";
-import { ProductionCarDTO } from "../entities/ProductionCarDTO";
-import { CarsService } from "../services/CarsService";
+import { ProductionClientDTO } from "../entities/ProductionClientDTO";
+import { ClientsService } from "../services/ClientsService";
 import { ApiError } from "../services/core/ApiError";
 import { PaginationProps } from "../types/PaginationProps";
 import { EditableCell } from "./EditableCell";
 
-export type CreateCarDialogProps = {
+export type CreateClientDialogProps = {
     isOpen: boolean;
     onClose?(): void;
     onOk?(): void;
 };
 
-export interface CarItem {
+export interface ClientItem {
     id: number | undefined;
-    plateNumber: string;
-    volume: number;
+    address: string;
+    name: string;
 }
 
-export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
+export const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
     isOpen,
     onClose,
     onOk,
@@ -32,103 +32,107 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(5);
-    const [cars, setCars] = useState<PagedList<CarItem>>({
+    const [clients, setClients] = useState<PagedList<ClientItem>>({
         items: [],
         totalItems: 0,
     });
 
-    const { isLoading: isCarsLoading } = useQuery<
-        PagedList<ProductionCarDTO>,
+    const { isLoading: isClientsLoading } = useQuery<
+        PagedList<ProductionClientDTO>,
         ApiError
-    >("loadCars", () => CarsService.SearchAsync("", 0, 5), {
+    >("loadClients", () => ClientsService.SearchAsync("", 0, 5), {
         onSuccess(data) {
-            const fetchedOptions = data.items.map<CarItem>((car) => ({
-                id: car.id,
-                plateNumber: car.plateNumber,
-                volume: car.volume,
+            const fetchedOptions = data.items.map<ClientItem>((client) => ({
+                id: client.id,
+                address: client.address,
+                name: client.name,
                 editable: false,
             }));
 
-            const pagedList: PagedList<CarItem> = {
+            const pagedList: PagedList<ClientItem> = {
                 items: fetchedOptions,
                 totalItems: data.totalItems,
             };
 
-            setCars(pagedList);
+            setClients(pagedList);
         },
     });
 
     const {
-        isLoading: isCarsSearching,
-        mutateAsync: searchCarsAsync,
-    } = useMutation<PagedList<ProductionCarDTO>, ApiError, PaginationProps>(
+        isLoading: isClientsSearching,
+        mutateAsync: searchClientsAsync,
+    } = useMutation<PagedList<ProductionClientDTO>, ApiError, PaginationProps>(
         (pagination) =>
-            CarsService.SearchAsync(
+            ClientsService.SearchAsync(
                 pagination.query,
                 (pagination.page - 1) * pagination.pageSize,
                 pagination.pageSize
             ),
         {
             onSuccess(data) {
-                const fetchedOptions = data.items.map<CarItem>((car) => ({
-                    id: car.id,
-                    plateNumber: car.plateNumber,
-                    volume: car.volume,
+                const fetchedOptions = data.items.map<ClientItem>((client) => ({
+                    id: client.id,
+                    address: client.address,
+                    name: client.name,
                     editable: false,
                 }));
 
-                const pagedList: PagedList<CarItem> = {
+                const pagedList: PagedList<ClientItem> = {
                     items: fetchedOptions,
                     totalItems: data.totalItems,
                 };
 
-                setCars(pagedList);
+                setClients(pagedList);
             },
         }
     );
 
     const {
-        mutateAsync: updateCarAsync,
-        isLoading: isCarUpdating,
-    } = useMutation<ProductionCarDTO, ApiError, ProductionCarDTO>((car) =>
-        CarsService.UpdateAsync(car.id, {
-            volume: car.volume,
-            plateNumber: car.plateNumber,
-        })
+        mutateAsync: updateClientAsync,
+        isLoading: isClientUpdating,
+    } = useMutation<ProductionClientDTO, ApiError, ProductionClientDTO>(
+        (client) =>
+            ClientsService.UpdateAsync(client.id, {
+                name: client.name,
+                address: client.address,
+            })
     );
 
     const {
-        mutateAsync: createCarAsync,
-        isLoading: isCarCreating,
-    } = useMutation<ProductionCarDTO, ApiError, ProductionCarDTO>(
-        (car) =>
-            CarsService.CreateAsync({
-                volume: car.volume,
-                plateNumber: car.plateNumber,
+        mutateAsync: createClientAsync,
+        isLoading: isClientCreating,
+    } = useMutation<ProductionClientDTO, ApiError, ProductionClientDTO>(
+        (client) =>
+            ClientsService.CreateAsync({
+                name: client.name,
+                address: client.address,
             }),
         {
-            onSuccess(car) {
-                console.log(cars.items);
+            onSuccess(Client) {
+                console.log(clients.items);
 
-                const filteredCars = cars.items.filter((c) => c.id != -1);
+                const filteredClients = clients.items.filter((c) => c.id != -1);
 
-                filteredCars.push(car);
+                filteredClients.push(Client);
 
-                setCars({ items: filteredCars, totalItems: cars.totalItems });
+                setClients({
+                    items: filteredClients,
+                    totalItems: clients.totalItems,
+                });
             },
         }
     );
 
     const {
-        mutateAsync: deleteCarAsync,
-        isLoading: isCarDeleting,
-    } = useMutation<void, ApiError, ProductionCarDTO>(
-        (car) => CarsService.DeleteAsync(car.id),
+        mutateAsync: deleteClientAsync,
+        isLoading: isClientDeleting,
+    } = useMutation<void, ApiError, ProductionClientDTO>(
+        (Client) => ClientsService.DeleteAsync(Client.id),
         {
             onSuccess(_, v) {
-                setCars({
-                    items: cars.items.filter((c) => c.id !== v.id),
-                    totalItems: cars.totalItems - 1,
+                setClients({
+                    items: clients.items.filter((c) => c.id !== v.id),
+                    totalItems: clients.totalItems - 1,
                 });
             },
             onError(error) {
@@ -139,18 +143,18 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
 
     const columns = [
         {
-            title: "Номер автомобиля",
-            dataIndex: "plateNumber",
+            title: "Имя клиента",
+            dataIndex: "name",
             editable: true,
         },
         {
-            title: "Объём автомобиля",
-            dataIndex: "volume",
+            title: "Адрес",
+            dataIndex: "address",
             editable: true,
         },
         {
             dataIndex: "operation",
-            render: (_: any, record: CarItem) => {
+            render: (_: any, record: ClientItem) => {
                 const editable = isEditing(record);
                 return editable ? (
                     <span>
@@ -171,7 +175,7 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
                         <Button
                             type="link"
                             disabled={editingId !== undefined}
-                            onClick={() => editCar(record)}
+                            onClick={() => editClient(record)}
                         >
                             <MdEdit />
                         </Button>
@@ -179,7 +183,7 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
                         <Button
                             type="link"
                             disabled={editingId !== undefined}
-                            onClick={() => deleteCar(record)}
+                            onClick={() => deleteClient(record)}
                         >
                             <MdDelete />
                         </Button>
@@ -195,7 +199,7 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
         }
         return {
             ...col,
-            onCell: (record: CarItem) => ({
+            onCell: (record: ClientItem) => ({
                 record,
                 inputType: col.dataIndex === "age" ? "number" : "text",
                 dataIndex: col.dataIndex,
@@ -205,51 +209,56 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
         };
     });
 
-    const isEditing = (record: CarItem) => record.id === editingId;
+    const isEditing = (record: ClientItem) => record.id === editingId;
 
-    const editCar = (record: CarItem) => {
-        form.setFieldsValue({ name: "", age: "", address: "", ...record });
+    const editClient = (record: ClientItem) => {
+        form.setFieldsValue({ ...record });
         setEditingKey(record.id);
     };
 
     const cancel = () => {
         if (editingId == -1) {
-            setCars({
-                items: cars.items.filter((c) => c.id !== editingId),
-                totalItems: cars.totalItems - 1,
+            setClients({
+                items: clients.items.filter((c) => c.id !== editingId),
+                totalItems: clients.totalItems - 1,
             });
         }
 
         return setEditingKey(undefined);
     };
 
-    const deleteCar = async (record: CarItem) => {
-        await deleteCarAsync({
+    const deleteClient = async (record: ClientItem) => {
+        await deleteClientAsync({
             id: record.id!,
-            plateNumber: record.plateNumber,
-            volume: record.volume,
+            name: record.name,
+            address: record.address,
         });
     };
 
-    const addCar = async () => {
-        const newCar = { id: -1, volume: 0, plateNumber: "Новая машина" };
-        const newData = [...cars.items];
+    const addClient = async () => {
+        const newClient: ClientItem = {
+            id: -1,
+            address: "",
+            name: "Новый клиент",
+        };
 
-        newData.unshift(newCar);
+        const newData = [...clients.items];
 
-        setCars({ items: newData, totalItems: cars.totalItems + 1 });
+        newData.unshift(newClient);
+
+        setClients({ items: newData, totalItems: clients.totalItems + 1 });
         setCurrentPage(1);
-        editCar(newCar);
+        editClient(newClient);
     };
 
     const save = async (id: number | undefined) => {
         try {
-            const row = (await form.validateFields()) as CarItem;
+            const row = (await form.validateFields()) as ClientItem;
 
-            const newData = [...cars.items];
-            const car = newData.find((item) => id === item.id);
+            const newData = [...clients.items];
+            const Client = newData.find((item) => id === item.id);
 
-            if (car?.id !== undefined && car.id > -1) {
+            if (Client?.id !== undefined && Client.id > -1) {
                 const index = newData.findIndex((item) => id === item.id);
                 const item = newData[index];
 
@@ -259,19 +268,19 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
                 });
                 const newItem = newData[index];
 
-                await updateCarAsync({
+                await updateClientAsync({
                     id: newItem.id!,
-                    plateNumber: newItem.plateNumber,
-                    volume: newItem.volume,
+                    name: newItem.name,
+                    address: newItem.address,
                 });
 
-                setCars({ items: newData, totalItems: cars.totalItems });
+                setClients({ items: newData, totalItems: clients.totalItems });
                 setEditingKey(undefined);
             } else {
-                await createCarAsync({
+                await createClientAsync({
                     id: row.id!,
-                    plateNumber: row.plateNumber,
-                    volume: row.volume,
+                    name: row.name,
+                    address: row.address,
                 });
 
                 setEditingKey(undefined);
@@ -285,7 +294,7 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
         setSearchQuery(query);
         setCurrentPage(1);
 
-        await searchCarsAsync({ page: 1, pageSize: 5, query: query });
+        await searchClientsAsync({ page: 1, pageSize: 5, query: query });
     };
 
     const handlePageChanged = async (
@@ -295,7 +304,7 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
         cancel();
         setCurrentPage(page);
 
-        await searchCarsAsync({
+        await searchClientsAsync({
             page: page,
             pageSize: pageSize,
             query: searchQuery,
@@ -322,11 +331,11 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
                 <Form form={form} component={false}>
                     <Table
                         loading={
-                            isCarDeleting ||
-                            isCarUpdating ||
-                            isCarCreating ||
-                            isCarsLoading ||
-                            isCarsSearching
+                            isClientDeleting ||
+                            isClientUpdating ||
+                            isClientCreating ||
+                            isClientsLoading ||
+                            isClientsSearching
                         }
                         components={{
                             body: {
@@ -335,12 +344,12 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
                         }}
                         bordered
                         columns={mergedColumns}
-                        dataSource={cars.items}
+                        dataSource={clients.items}
                         rowClassName="editable-row"
                         pagination={{
                             pageSize: pageSize,
                             current: currentPage,
-                            total: cars.totalItems,
+                            total: clients.totalItems,
                             onChange: handlePageChanged,
                         }}
                     />
@@ -348,9 +357,9 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
                 <Button
                     disabled={editingId !== undefined}
                     className=" right-0"
-                    onClick={addCar}
+                    onClick={addClient}
                 >
-                    Добавить автомобиль
+                    Добавить клиента
                 </Button>
             </div>
         </Modal>

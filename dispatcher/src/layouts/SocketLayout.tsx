@@ -1,23 +1,14 @@
-import {
-    HubConnectionBuilder,
-    IRetryPolicy,
-    RetryContext,
-} from "@microsoft/signalr";
-import { Button, Card, Result, Space, Spin, message } from "antd";
-import Layout, { Content } from "antd/es/layout/layout";
+import { HubConnectionBuilder, IRetryPolicy } from "@microsoft/signalr";
+import { Button, Card, Result, message } from "antd";
 import { useEffect, useState } from "react";
 import { useMutation } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
-import UseAnimations from "react-useanimations";
-import alertCircle from "react-useanimations/lib/alertCircle";
-import ApplicationStatus, {
-    ProductionApplicationDTO,
-} from "../entities/ApplicationDTO";
+import { ProductionApplicationDTO } from "../entities/ApplicationDTO";
 import { ApplicationInQueueAdded as ApplicationInQueueUpdated } from "../entities/notifications/ApplicationInQueueAdded";
 import { ApplicationStateUpdated as ApplicationStateUpdatedNotification } from "../entities/notifications/ApplicationStateUpdated";
 import { ApplicationsOrderUpdated } from "../entities/notifications/ApplicationsOrderUpdated";
-import { ConnectionsService } from "../services/ConnectionsService";
 import { ApplicationsService } from "../services/ApplicationsService";
+import { ConnectionsService } from "../services/ConnectionsService";
 import { ApiError } from "../services/core/ApiError";
 import {
     addApplicationInPreQueue,
@@ -32,8 +23,9 @@ import {
     updateApplicationInQueue,
     updateOrderInQueue,
 } from "../store/reducers/applicationsInQueueSlice";
-import { RootState } from "../store/store";
 import { setApplication } from "../store/reducers/dispatcherSlice";
+import { RootState } from "../store/store";
+import { WavyBackground } from "../components/WavyBackground";
 
 export type SocketLayoutProps = {
     element: React.ReactNode;
@@ -47,8 +39,7 @@ class ConnectionRetryPolicy implements IRetryPolicy {
 
 export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
     const dispatch = useDispatch();
-    const [isConnected, setIsConnected] = useState(true);
-    const [isConnecting, setIsConnecting] = useState(false);
+    const [isConnected, setIsConnected] = useState(false);
 
     const dialogApplication = useSelector(
         (state: RootState) => state.dispatcher.application
@@ -56,6 +47,7 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
 
     const {
         isLoading: isApplicationsInQueueLoading,
+        isSuccess: isApplicationsInQueueLoadedSuccess,
         mutateAsync: getApplicationsInQueue,
     } = useMutation<Array<ProductionApplicationDTO>, ApiError>(
         () => ApplicationsService.GetAllInQueueAsync(),
@@ -71,6 +63,7 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
 
     const {
         isLoading: isApplicationsPreQueueLoading,
+        isSuccess: isApplicationsInPreQueueLoadedSuccess,
         mutateAsync: getApplicationsInPreQueue,
     } = useMutation<Array<ProductionApplicationDTO>, ApiError>(
         () => ApplicationsService.GetAllInPreQueueAsync(),
@@ -135,28 +128,33 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
         },
     });
 
-    const { isLoading: isPingLoading, mutateAsync: pingAsync } = useMutation<
-        void,
-        ApiError
-    >(
+    const {
+        isLoading: isCheckingProductionConnectionLoading,
+        mutateAsync: checkProductionConnection,
+    } = useMutation<void, ApiError>(
         async () => {
             message.loading(
                 "Проверяем подключение к вашему производству...",
                 0.8
             );
 
-            var ping = await ConnectionsService.CheckAsync();
-
-            return ping;
+            await ConnectionsService.CheckAsync();
         },
         {
             onError: () => {
                 message.error(
                     "Нам не удалось достучаться до вашего производства, повторите запрос позже..."
                 );
+
                 setIsConnected(false);
             },
-            onSuccess: () => setIsConnected(true),
+            onSuccess: () => {
+                message.success(
+                    "Подключение к вашему производству установлено!"
+                );
+
+                setIsConnected(true);
+            },
         }
     );
 
@@ -176,13 +174,6 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
         if (notificaiton.applicationId != -1) {
             await setApplicationInQueueAsync(notificaiton.applicationId);
         }
-    }
-
-    async function OnRetryConnectHandle(): Promise<void> {
-        await pingAsync().then(async () => {
-            await getApplicationsInQueue();
-            await getApplicationsInPreQueue();
-        });
     }
 
     async function OnApplicationInPreQueueUpdated(
@@ -207,10 +198,13 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
         dispatch(updateOrderInPreQueue(notificaiton.applicationsOrder));
     }
 
+    async function reloadProductionData(): Promise<void> {
+        await getApplicationsInQueue();
+        await getApplicationsInPreQueue();
+    }
+
     useEffect(() => {
         async function connectAsync() {
-            setIsConnecting(true);
-
             const connection = new HubConnectionBuilder()
                 .withUrl(`http://localhost:6100/signalr/notifications-hub`)
                 .withAutomaticReconnect(new ConnectionRetryPolicy())
@@ -221,8 +215,9 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
                 message.error("Производство отключено");
             });
 
-            connection.on("NotifyProductionConnected", () => {
+            connection.on("NotifyProductionConnected", async () => {
                 setIsConnected(true);
+                await reloadProductionData();
                 message.success("Производство успешно подключено");
             });
 
@@ -251,9 +246,8 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
                 OnApplicationInQueueUpdated
             );
 
-            connection.onreconnected(() => {
-                setIsConnecting(false);
-                setIsConnected(true);
+            connection.onreconnected(async () => {
+                await checkProductionConnection().then(reloadProductionData);
 
                 message.success(
                     "Вы были успешно переподключены к сети SmartWeb"
@@ -261,7 +255,6 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
             });
 
             connection.onclose(() => {
-                setIsConnecting(true);
                 setIsConnected(false);
 
                 message.error(
@@ -269,68 +262,55 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
                 );
             });
 
-            connection.onreconnecting(() => {
-                setIsConnecting(true);
-                setIsConnected(false);
-
-                message.loading("Выполняется переподключение к сети SmartWeb");
-            });
-
-            await connection
+            connection
                 .start()
-                .then(async () => {
-                    setIsConnecting(false);
-                    setIsConnected(true);
-
-                    await pingAsync();
-                    await getApplicationsInQueue();
-                    await getApplicationsInPreQueue();
-                })
-                .catch(() => {
-                    setIsConnecting(false);
-                    setIsConnected(false);
-                });
+                .then(async () => await checkProductionConnection())
+                .then(async () => await reloadProductionData())
+                .catch();
         }
 
         connectAsync();
     }, []);
 
     return (
-        <Layout className=" w-full bg-slate-50 p-4">
-            <Spin
-                spinning={
-                    isApplicationsInQueueLoading ||
-                    isApplicationsPreQueueLoading ||
-                    isConnecting
-                }
-            >
-                {isConnected && (
-                    <Content className=" w-full min-h-screen">{element}</Content>
-                )}
+        <>
+            {!isConnected && (
+                <WavyBackground>
+                    <p className="text-2xl md:text-4xl lg:text-7xl text-white font-bold inter-var text-center">
+                        Подключение к производству...
+                    </p>
+                    <p className="text-base md:text-lg mt-4 text-white font-normal inter-var text-center">
+                        Производство автоматически подключится через несколько
+                        секунд. <br /> Если проблема долго не исчезает, то
+                        вам необходимо проверить интернет подключение на
+                        компьютере, где установлена программа SmartMix или
+                        обновить страницу
+                    </p>
+                </WavyBackground>
+            )}
 
-                {!isConnected && (
-                    <div className=" items-center justify-center h-full w-full">
-                        <Card bordered={true} className=" h-full w-full">
-                            <Result
-                                status="500"
-                                title="Хьюстон, у нас проблемы..."
-                                subTitle={`
-                                        Ваше производство скоро переподключится, но если вы не верите, то можете потыкать на кнопку ниже.
-                                        Если проблема долго не исчезает, то вам необходимо проверить интернет подключение на компьютере, где расположена программа SmartMix.`}
-                                extra={
-                                    <Button
-                                        type="primary"
-                                        onClick={OnRetryConnectHandle}
-                                        disabled={isPingLoading}
-                                    >
-                                        Проверить подключение
-                                    </Button>
-                                }
-                            />
-                        </Card>
-                    </div>
-                )}
-            </Spin>
-        </Layout>
+            {isConnected && element}
+        </>
     );
 };
+
+// <div className=" items-center justify-center h-full w-full p-6">
+//     <Card bordered={true} className=" h-full w-full">
+//         <Result
+//             status="500"
+//             title="Хьюстон, у нас проблемы..."
+//             subTitle={`
+//                         Ваше производство скоро переподключится, но если вы не верите, то можете потыкать на кнопку ниже.
+//                         Если проблема долго не исчезает, то вам необходимо проверить интернет подключение на компьютере, где расположена программа SmartMix.`}
+//             extra={
+//                 <Button
+//                     type="primary"
+//                     onClick={OnRetryConnectHandle}
+//                     disabled={isPingLoading}
+//                 >
+//                     Проверить подключение
+//                 </Button>
+//             }
+//         />
+//     </Card>
+// </div>

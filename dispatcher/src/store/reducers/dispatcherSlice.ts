@@ -9,6 +9,7 @@ export type DispatcherState = {
     recipeId?: number;
     clientId?: number;
     categoryId: number;
+    isQuickApplication: boolean;
     application?: ProductionApplicationDTO;
 };
 
@@ -20,6 +21,7 @@ const initialState: DispatcherState = {
     recipeId: 0,
     clientId: 0,
     categoryId: -1,
+    isQuickApplication: false,
 };
 
 const dispatcherSlice = createSlice({
@@ -50,6 +52,9 @@ const dispatcherSlice = createSlice({
         setApplication(state, action: PayloadAction<ProductionApplicationDTO>) {
             state.application = action.payload;
         },
+        setQuickApplication(state, action: PayloadAction<boolean>) {
+            state.isQuickApplication = action.payload;
+        },
     },
 });
 
@@ -62,6 +67,7 @@ export const {
     setVolume,
     setCategory,
     setApplication,
+    setQuickApplication,
 } = dispatcherSlice.actions;
 
 export default dispatcherSlice.reducer;

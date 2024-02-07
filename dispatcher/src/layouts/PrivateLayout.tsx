@@ -1,21 +1,9 @@
-import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
-import {
-    Button,
-    Col,
-    Layout,
-    Menu,
-    MenuProps,
-    Result,
-    Row,
-    Spin,
-    message,
-} from "antd";
-import Sider from "antd/es/layout/Sider";
+import { Layout, Menu, MenuProps, Result, Row, Spin, message } from "antd";
 import { Content, Header } from "antd/es/layout/layout";
 import MenuItem from "antd/es/menu/MenuItem";
-import { useEffect, useState } from "react";
-import { CiGrid32, CiMemoPad } from "react-icons/ci";
-import { useMutation } from "react-query";
+import { useState } from "react";
+import { GoLog, GoStack } from "react-icons/go";
+import { useMutation, useQuery } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { DispatcherTour } from "../components/DispatcherTour";
@@ -38,27 +26,28 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
     const navigate = useNavigate();
     const userState = useSelector((state: RootState) => state.user.currentUser);
     const [isTourOpen, setTourOpen] = useState<boolean>(false);
-    const [isMenuToggled, setMenuToggled] = useState<boolean>(false);
 
-    const items: MenuItem[] = [
+    const [currentPage, setCurrentPage] = useState("panel");
+
+    const menuItems: MenuItem[] = [
         {
-            label: <Link to={"/"}>Диспетчер</Link>,
-            key: "dispatcher",
-            icon: <CiGrid32 />,
+            label: <Link to={"/"}>Панель управления</Link>,
+            key: "panel",
+            icon: <GoStack />,
         },
         {
             label: <Link to={"/events-logs"}>Журнал событий</Link>,
-            key: "events",
-            icon: <CiMemoPad />,
+            key: "events-logs",
+            icon: <GoLog />,
         },
     ];
 
     const {
-        mutateAsync: getUserStateAsync,
         isError: isUserStateErrorLoaded,
         isLoading: isUserStateLoading,
         isSuccess: isUserStateSuccessLoaded,
-    } = useMutation<UserStateDTO, ApiError>(
+    } = useQuery<UserStateDTO, ApiError>(
+        "getState",
         () => AuthorizationService.GetStateAsync(),
         {
             onSuccess(data) {
@@ -67,6 +56,9 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
             onError() {
                 navigate("/login");
             },
+            retry: false,
+            retryOnMount: true,
+            refetchOnMount: true,
         }
     );
 
@@ -87,65 +79,41 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
         await signOutAsync();
     };
 
-    const handleTourOpen = () => {
-        setTourOpen(true);
+    const changePageHandler: MenuProps["onClick"] = (e) => {
+        setCurrentPage(e.key);
     };
-
-    const handleToggleMenu = () => {
-        setMenuToggled(!isMenuToggled);
-    };
-
-    useEffect(() => {
-        getUserStateAsync();
-    }, []);
 
     if (isUserStateSuccessLoaded) {
         return (
             <>
-                <Layout className=" w-full bg-slate-50 h-dvh-100vh">
-                    <Header className=" bg-white">
+                <Layout className="  w-full bg-transparent h-dvh">
+                    <Header className=" m-0 pl-8">
                         <Row>
-                            <Col xs={0} xl={21}>
-                                <Button
-                                    type="primary"
-                                    onClick={handleToggleMenu}
-                                >
-                                    {isMenuToggled ? (
-                                        <MenuUnfoldOutlined />
-                                    ) : (
-                                        <MenuFoldOutlined />
-                                    )}
-                                </Button>
-                            </Col>
+                            <Menu
+                                selectedKeys={[currentPage]}
+                                onClick={changePageHandler}
+                                mode="horizontal"
+                                className=" w-full"
+                                items={menuItems}
+                                theme="dark"
+                            ></Menu>
 
-                            <Col xs={24} xl={3} className="p-4">
-                                <div className="cursor-pointer">
-                                    <UserAccountDropdownMenu
-                                        username={`${userState?.firstName} ${userState?.lastName}`}
-                                        onSignOut={handleSignOutAsync}
-                                    />
-                                </div>
-                            </Col>
+                            <div className="cursor-pointer p-4 absolute right-8">
+                                <UserAccountDropdownMenu
+                                    username={`${userState?.firstName} ${userState?.lastName}`}
+                                    onSignOut={handleSignOutAsync}
+                                />
+                            </div>
                         </Row>
                     </Header>
 
-                    <Layout className=" h-dvh bg-slate-50">
-                        <Sider
-                            collapsed={isMenuToggled}
-                            className=" h-full w-full"
-                        >
-                            <Menu
-                                inlineCollapsed={isMenuToggled}
-                                className=" h-full p-2"
-                                defaultSelectedKeys={["dispatcher"]}
-                                defaultOpenKeys={["dispatcher"]}
-                                mode="inline"
-                                items={items}
-                                theme="light"
-                            />
-                        </Sider>
-                        <SocketLayout element={element} />
-                    </Layout>
+                    <div className=" overflow-hidden h-dvh w-full dark:bg-slate-900 bg-black  dark:bg-grid-small-white/[0.2] bg-grid-small-black/[0.2] relative flex justify-center">
+                        <div className="h-full absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-slate-900 bg-white [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
+
+                        <Layout className="bg-transparent w-full overflow-x-hidden">
+                            <SocketLayout element={element} />
+                        </Layout>
+                    </div>
 
                     <DispatcherTour
                         isOpen={isTourOpen}
@@ -160,6 +128,7 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
         return (
             <Content className="flex justify-center items-center">
                 <Result
+                    className="bg-transparent"
                     icon={<Spin spinning={isUserStateLoading} />}
                     status={"info"}
                     title="Загрузка"
