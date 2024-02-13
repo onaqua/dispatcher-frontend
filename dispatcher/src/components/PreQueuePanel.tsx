@@ -1,4 +1,4 @@
-import { Button, Card, Space, Table, message } from "antd";
+import { Button, Card, Modal, Space, Table, Typography, message } from "antd";
 import { IoArrowDownCircleOutline } from "react-icons/io5";
 
 import { MdOutlineDelete } from "react-icons/md";
@@ -58,26 +58,39 @@ export const PreQueuePanel: React.FC = () => {
                 <Table
                     size="small"
                     dataSource={applications}
-                    pagination={{ pageSize: 3, hideOnSinglePage: true }}
+                    pagination={{
+                        pageSize: 3,
+                        hideOnSinglePage: true,
+                        showTotal(total, range) {
+                            return (
+                                <Typography.Text className=" text-left">
+                                    Показано {range[1]} из {total}
+                                </Typography.Text>
+                            );
+                        },
+                    }}
                     loading={isApplicationAdding || isApplicationDeleting}
                     className=" min-h-64 max-h-64 overflow-hidden"
                 >
                     <Table.Column title="Номер" dataIndex={"id"}></Table.Column>
 
                     <Table.Column
-                        title="Объём"
-                        dataIndex={"volume"}
-                    ></Table.Column>
-
-                    <Table.Column
                         title="Рецепты"
+                        responsive={["lg", "xs", "sm", "xl"]}
                         render={(_, v: ProductionApplicationDTO) =>
                             v.layers.map((l) => l.recipe.name).join(", ")
                         }
                     ></Table.Column>
 
                     <Table.Column
+                        title="Объём"
+                        responsive={["xxl", "sm"]}
+                        dataIndex={"volume"}
+                    ></Table.Column>
+
+                    <Table.Column
                         title="Клиент"
+                        responsive={["xxl"]}
                         render={(_, v: ProductionApplicationDTO) => (
                             <Permission
                                 need={DispatcherPermissions.ClientsView}
@@ -90,6 +103,7 @@ export const PreQueuePanel: React.FC = () => {
 
                     <Table.Column
                         title="Машина"
+                        responsive={["xxl"]}
                         render={(_, v: ProductionApplicationDTO) => (
                             <Permission
                                 need={DispatcherPermissions.CarsView}

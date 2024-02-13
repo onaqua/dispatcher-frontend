@@ -1,15 +1,14 @@
-import
-    {
-        Button,
-        Card,
-        Divider,
-        Form,
-        Input,
-        Space,
-        Spin,
-        Typography,
-        message,
-    } from "antd";
+import {
+    Button,
+    Card,
+    Divider,
+    Form,
+    Input,
+    Space,
+    Spin,
+    Typography,
+    message,
+} from "antd";
 import { useMutation } from "react-query";
 import { useNavigate } from "react-router-dom";
 import { CardContainer, CardItem } from "../components/3d-card";
@@ -33,7 +32,9 @@ export const LoginPage: React.FC = () => {
     >((request) => AuthorizationService.SignInAsync(request), {
         onSuccess: () => navigate("/"),
         onError(error) {
-            message.error(error.body.Details);
+            if (error.body.Details) {
+                message.error(error.body.Details);
+            }
         },
     });
 

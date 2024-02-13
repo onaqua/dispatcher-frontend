@@ -5,6 +5,7 @@ import recipesSlice from "./reducers/recipesSlice";
 import applicationsInPreQueueSlice from "./reducers/applicationsInPreQueueSlice";
 import dispatcherSlice from "./reducers/dispatcherSlice";
 import userSlice from "./reducers/userSlice";
+import authorizationSlice from "./reducers/authorizationSlice";
 
 const store = configureStore({
     reducer: {
@@ -12,6 +13,7 @@ const store = configureStore({
         cars: carsSlice,
         recipes: recipesSlice,
         dispatcher: dispatcherSlice,
+        authorization: authorizationSlice,
         applicationsInQueue: applicationsInQueueSlice,
         applicationsInPreQueue: applicationsInPreQueueSlice,
     },

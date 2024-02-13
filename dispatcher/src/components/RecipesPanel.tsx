@@ -1,23 +1,23 @@
-import
-    {
-        Button,
-        Card,
-        Checkbox,
-        Col,
-        Input,
-        InputNumber,
-        List,
-        Row,
-        Segmented,
-        Select,
-        Space,
-        Typography,
-        message,
-    } from "antd";
+import {
+    Button,
+    Card,
+    Checkbox,
+    Col,
+    Input,
+    InputNumber,
+    List,
+    Row,
+    Segmented,
+    Select,
+    Space,
+    Typography,
+    message,
+} from "antd";
 import { SegmentedValue } from "antd/es/segmented";
 import { useEffect, useState } from "react";
-import { useMutation } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
+import { ConfirmApplicationDialog } from "../dialogs/ConfirmApplicationDialog";
 import { PagedList } from "../entities/PagedList";
 import { ProductionCategoryDTO } from "../entities/ProductionCategoryDTO";
 import ProductionRecipeDTO, {
@@ -29,14 +29,13 @@ import { MixersService } from "../services/MixersService";
 import { RecipesService } from "../services/RecipesService";
 import { ApiError } from "../services/core/ApiError";
 import { AddApplicationInPreQueueRequest } from "../services/requests/LoginRequest";
-import
-    {
-        setCategory,
-        setMixer,
-        setQuickApplication,
-        setRecipe,
-        setVolume,
-    } from "../store/reducers/dispatcherSlice";
+import {
+    setCategory,
+    setMixer,
+    setQuickApplication,
+    setRecipe,
+    setVolume,
+} from "../store/reducers/dispatcherSlice";
 import { RootState } from "../store/store";
 import { PaginationProps } from "../types/PaginationProps";
 import { TypedOption } from "../types/TypedOption";
@@ -46,15 +45,12 @@ type RecipeOption = {
     name: string;
 };
 
-interface RecipesPaginationProps extends PaginationProps {
-    categoryId: number;
-}
-
 export const RecipesPanel: React.FC = () => {
     const dispatch = useDispatch();
     const [recipesQuery, setRecipesQuery] = useState("");
+    const [categoriesQuery, setCategoriesQuery] = useState("");
 
-    const carId = useSelector((state: RootState) => state.dispatcher.carId);
+    const car = useSelector((state: RootState) => state.dispatcher.car);
     const mixer = useSelector((state: RootState) => state.dispatcher.mixer);
     const volume = useSelector((state: RootState) => state.dispatcher.volume);
     const invoice = useSelector((state: RootState) => state.dispatcher.invoice);
@@ -64,17 +60,19 @@ export const RecipesPanel: React.FC = () => {
 
     const [mixers, setMixers] = useState<Array<ProductionMixerDTO>>([]);
 
+    const [applicationDialogOpen, setApplicationDialogOpen] = useState<boolean>(
+        false
+    );
+
     const recipeId = useSelector(
         (state: RootState) => state.dispatcher.recipeId
     );
 
-    const categoryId = useSelector(
-        (state: RootState) => state.dispatcher.categoryId
+    const category = useSelector(
+        (state: RootState) => state.dispatcher.category
     );
 
-    const clientId = useSelector(
-        (state: RootState) => state.dispatcher.clientId
-    );
+    const client = useSelector((state: RootState) => state.dispatcher.client);
 
     const [recipes, setRecipes] = useState<PagedList<RecipeOption>>({
         items: [],
@@ -87,19 +85,14 @@ export const RecipesPanel: React.FC = () => {
 
     const [currentPage, setCurrentPage] = useState<number>(1);
 
-    const {
-        mutateAsync: searchRecipesAsync,
-    } = useMutation<
-        PagedList<ProductionRecipeDTO>,
-        ApiError,
-        RecipesPaginationProps
-    >(
-        (pagination) =>
+    const {} = useQuery<PagedList<ProductionRecipeDTO>, ApiError>(
+        ["recipes", currentPage, recipesQuery, category],
+        () =>
             RecipesService.SearchAsync(
-                pagination.categoryId,
-                pagination.query,
-                pagination.pageSize * (pagination.page - 1),
-                pagination.pageSize
+                category.id,
+                recipesQuery,
+                5 * (currentPage - 1),
+                5
             ),
         {
             onSuccess(fetchedRecipes) {
@@ -124,19 +117,9 @@ export const RecipesPanel: React.FC = () => {
         }
     );
 
-    const {
-        mutateAsync: searchCategoriesAsync,
-    } = useMutation<
-        PagedList<ProductionCategoryDTO>,
-        ApiError,
-        PaginationProps
-    >(
-        (pagination) =>
-            CategoriesService.SearchAsync(
-                pagination.query,
-                pagination.pageSize * (pagination.page - 1),
-                pagination.pageSize
-            ),
+    const {} = useQuery<PagedList<ProductionCategoryDTO>, ApiError>(
+        ["categories", categoriesQuery],
+        () => CategoriesService.SearchAsync(categoriesQuery, 0, 5),
         {
             onSuccess(fetchedCategories) {
                 const options = fetchedCategories.items.map<
@@ -155,9 +138,8 @@ export const RecipesPanel: React.FC = () => {
         }
     );
 
-    const {
-        mutateAsync: getMixersAsync,
-    } = useMutation<Array<ProductionMixerDTO>, ApiError>(
+    const {} = useQuery<Array<ProductionMixerDTO>, ApiError>(
+        "mixers",
         () => MixersService.GetAsync(),
         {
             onSuccess(fetchedMixers) {
@@ -178,6 +160,7 @@ export const RecipesPanel: React.FC = () => {
             onError(error) {
                 message.error(error.body.Details);
             },
+            onSuccess: () => setApplicationDialogOpen(false),
         }
     );
 
@@ -187,18 +170,12 @@ export const RecipesPanel: React.FC = () => {
 
     const handlePageChanged = (pageNumber: number) => {
         setCurrentPage(pageNumber);
-        searchRecipesAsync({
-            categoryId,
-            query: recipesQuery,
-            page: pageNumber,
-            pageSize: 5,
-        });
     };
 
     const handleAddApplication = async () => {
         const request: AddApplicationInPreQueueRequest = {
-            carId: carId!,
-            clientId: clientId!,
+            carId: car.id!,
+            clientId: client?.id!,
             recipeId: recipeId!,
             volume: volume!,
             invoice: invoice!,
@@ -211,23 +188,20 @@ export const RecipesPanel: React.FC = () => {
         await addApplicationInPreQueueAsync(request);
     };
 
+    const handleSendApplication = async () => {
+        setApplicationDialogOpen(true);
+    };
+
+    const handleCloseApplicationDialog = () => {
+        setApplicationDialogOpen(false);
+    };
+
     const handleSearchRecipesChanged = async (query: string) => {
         setRecipesQuery(query);
-
-        await searchRecipesAsync({
-            categoryId,
-            query: query,
-            page: currentPage,
-            pageSize: 5,
-        });
     };
 
     const handleSearchCategoriesChanged = async (query: string) => {
-        await searchCategoriesAsync({
-            query: query,
-            page: 1,
-            pageSize: 5,
-        });
+        setCategoriesQuery(query);
     };
 
     const handleQuickApplicationChanged = async (value: boolean) => {
@@ -235,14 +209,7 @@ export const RecipesPanel: React.FC = () => {
     };
 
     const handleCategorySelected = async (category: ProductionCategoryDTO) => {
-        dispatch(setCategory(category.id));
-
-        await searchRecipesAsync({
-            categoryId: category.id,
-            query: recipesQuery,
-            page: currentPage,
-            pageSize: 5,
-        });
+        dispatch(setCategory(category));
     };
 
     const handleVolumeChanged = (value: number | null) => {
@@ -255,12 +222,15 @@ export const RecipesPanel: React.FC = () => {
         dispatch(setMixer(value.valueOf() as number));
     };
 
-    useEffect(() => {
-        getMixersAsync();
-    }, []);
-
     return (
         <>
+            <ConfirmApplicationDialog
+                isLoading={isApplicationLoading}
+                open={applicationDialogOpen}
+                onCancel={handleCloseApplicationDialog}
+                onConfirm={handleAddApplication}
+            />
+
             <Card title="Панель рецептов">
                 <Space className="mb-2 w-full" direction="vertical" size={24}>
                     <Row gutter={[32, 16]}>
@@ -269,6 +239,7 @@ export const RecipesPanel: React.FC = () => {
                                 showSearch
                                 placeholder="Выберите категорию рецепта"
                                 options={categories}
+                                defaultValue={category.name}
                                 onSearch={handleSearchCategoriesChanged}
                                 onFocus={() =>
                                     handleSearchCategoriesChanged("")
@@ -301,8 +272,15 @@ export const RecipesPanel: React.FC = () => {
                                     pageSize: 5,
                                     current: currentPage,
                                     total: recipes.totalItems,
-                                    className: "flex justify-center bottom-0",
+                                    className: "",
                                     onChange: handlePageChanged,
+                                    showTotal(total, range) {
+                                        return (
+                                            <Typography.Text className=" text-left">
+                                                Показано {range[1]} из {total}
+                                            </Typography.Text>
+                                        );
+                                    },
                                 }}
                                 renderItem={(recipe) => (
                                     <List.Item
@@ -331,7 +309,7 @@ export const RecipesPanel: React.FC = () => {
                     </Row>
 
                     <Row gutter={[36, 16]}>
-                        {mixers && mixers.length && (
+                        {mixers?.length > 0 && (
                             <Col xxl={12} xl={12} md={12} xs={24} lg={24}>
                                 <Segmented
                                     className=" w-full"
@@ -383,7 +361,7 @@ export const RecipesPanel: React.FC = () => {
                             <Button
                                 type="primary"
                                 loading={isApplicationLoading}
-                                onClick={handleAddApplication}
+                                onClick={handleSendApplication}
                                 className="right-0"
                             >
                                 Создать заявку

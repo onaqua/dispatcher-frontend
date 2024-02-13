@@ -1,6 +1,6 @@
 import { Button, Card, Input, Select, message } from "antd";
 import { ChangeEvent, useState } from "react";
-import { useMutation } from "react-query";
+import { useQuery } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { DispatcherPermissions } from "../consts/Permissions";
 import { CreateClientDialog } from "../dialogs/ClientsDialog";
@@ -14,42 +14,42 @@ import { RootState } from "../store/store";
 import { TypedOption } from "../types/TypedOption";
 
 export const ClientsPanel: React.FC = () => {
+    const client = useSelector((state: RootState) => state.dispatcher.client);
+
     const dispatch = useDispatch();
     const invoice = useSelector((state: RootState) => state.dispatcher.invoice);
     const [query, setQuery] = useState("");
     const [options, setOptions] = useState<
         Array<TypedOption<ProductionClientDTO>>
     >([]);
-
     const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
-    const { isLoading, mutateAsync: searchCarsAsync } = useMutation<
-        PagedList<ProductionClientDTO>,
-        ApiError
-    >(() => ClientsService.SearchAsync(query, 0, 5), {
-        onSuccess(data) {
-            const options = data.items.map<TypedOption<ProductionClientDTO>>(
-                (car) => ({
+    const { isLoading } = useQuery<PagedList<ProductionClientDTO>, ApiError>(
+        ["cars", query],
+        () => ClientsService.SearchAsync(query, 0, 5),
+        {
+            onSuccess(data) {
+                const options = data.items.map<
+                    TypedOption<ProductionClientDTO>
+                >((car) => ({
                     value: car.id,
                     label: car.name,
                     data: car,
-                })
-            );
+                }));
 
-            setOptions(options);
-        },
-        onError(error) {
-            message.error(error.body.Details);
-        },
-    });
+                setOptions(options);
+            },
+            onError(error) {
+                message.error(error.body.Details);
+            },
+        }
+    );
 
     const handleSearchChanged = async (query: string) => {
         setQuery(query);
-
-        await searchCarsAsync();
     };
 
     const handleSelect = async (client: ProductionClientDTO) => {
-        dispatch(setClient(client.id));
+        dispatch(setClient(client));
     };
 
     function handleInvoiceChanged(event: ChangeEvent<HTMLInputElement>): void {
@@ -92,6 +92,7 @@ export const ClientsPanel: React.FC = () => {
                             placeholder="Введите имя"
                             options={options}
                             loading={isLoading}
+                            defaultValue={client?.name}
                             searchValue={query}
                             onSearch={handleSearchChanged}
                             onSelect={(_, e) => handleSelect(e.data)}

@@ -1,7 +1,7 @@
 import { Button, Card, Select, message } from "antd";
 import { useState } from "react";
 import { useMutation } from "react-query";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { CreateCarDialog } from "../dialogs/CarsDialogs";
 import { PagedList } from "../entities/PagedList";
 import { ProductionCarDTO } from "../entities/ProductionCarDTO";
@@ -10,9 +10,12 @@ import { ApiError } from "../services/core/ApiError";
 import { setCar } from "../store/reducers/dispatcherSlice";
 import { PaginationProps } from "../types/PaginationProps";
 import { TypedOption } from "../types/TypedOption";
+import { RootState } from "../store/store";
 
 export const CarsPanel: React.FC = () => {
     const dispatch = useDispatch();
+
+    const selectedCar = useSelector((root: RootState) => root.dispatcher.car);
 
     const [query, setQuery] = useState("");
     const [options, setOptions] = useState<
@@ -58,7 +61,7 @@ export const CarsPanel: React.FC = () => {
 
     const handleSelect = async (car: ProductionCarDTO) => {
         console.log("selected car:", car);
-        dispatch(setCar(car.id));
+        dispatch(setCar(car));
     };
 
     return (
@@ -76,6 +79,7 @@ export const CarsPanel: React.FC = () => {
                     <Select
                         showSearch
                         className="w-full"
+                        defaultValue={selectedCar.plateNumber}
                         placeholder="Введите номер"
                         options={options}
                         loading={isLoading}

@@ -1,14 +1,17 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { ProductionApplicationDTO } from "../../entities/ApplicationDTO";
+import { ProductionCarDTO } from "../../entities/ProductionCarDTO";
+import ProductionClientDTO from "../../entities/ProductionClientDTO";
+import { ProductionCategoryDTO } from "../../entities/ProductionCategoryDTO";
 
 export type DispatcherState = {
     mixer: number;
     volume: number;
     invoice?: string;
-    carId?: number;
+    car: ProductionCarDTO;
+    client?: ProductionClientDTO;
     recipeId?: number;
-    clientId?: number;
-    categoryId: number;
+    category: ProductionCategoryDTO;
     isQuickApplication: boolean;
     application?: ProductionApplicationDTO;
 };
@@ -17,10 +20,10 @@ const initialState: DispatcherState = {
     mixer: 1,
     volume: 1,
     invoice: "",
-    carId: 0,
+    car: { id: 0, plateNumber: "Не выбрана", volume: 0 },
     recipeId: 0,
-    clientId: 0,
-    categoryId: -1,
+    client: { id: 0, name: "Не выбран", address: "Не выбран" },
+    category: { id: 0, name: "Без категории" },
     isQuickApplication: false,
 };
 
@@ -37,17 +40,17 @@ const dispatcherSlice = createSlice({
         setVolume(state, action: PayloadAction<number>) {
             state.volume = action.payload;
         },
-        setCar(state, action: PayloadAction<number>) {
-            state.carId = action.payload;
+        setCar(state, action: PayloadAction<ProductionCarDTO>) {
+            state.car = action.payload;
         },
         setRecipe(state, action: PayloadAction<number>) {
             state.recipeId = action.payload;
         },
-        setCategory(state, action: PayloadAction<number>) {
-            state.categoryId = action.payload;
+        setCategory(state, action: PayloadAction<ProductionCategoryDTO>) {
+            state.category = action.payload;
         },
-        setClient(state, action: PayloadAction<number>) {
-            state.clientId = action.payload;
+        setClient(state, action: PayloadAction<ProductionClientDTO>) {
+            state.client = action.payload;
         },
         setApplication(state, action: PayloadAction<ProductionApplicationDTO>) {
             state.application = action.payload;

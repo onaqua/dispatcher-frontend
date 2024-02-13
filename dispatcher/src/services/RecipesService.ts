@@ -20,4 +20,17 @@ export class RecipesService {
             },
         });
     }
+
+    public static GetAsync(
+        id: number
+    ): CancelablePromise<ProductionRecipeDTO> {
+        return __request(OpenAPI, {
+            method: "GET",
+            url: `/recipes/${id}`,
+            errors: {
+                401: `Unauthorized`,
+                500: `Server Error`,
+            },
+        });
+    }
 }

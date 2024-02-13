@@ -7,20 +7,23 @@ import { PrivateLayout } from "./layouts/PrivateLayout";
 import { EventsPage } from "./pages/EventsPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
+import AxiosRefreshInterceptor from "./interceptors/refreshInterceptor";
 
 export const App: React.FC = () => {
     const queryClient = new QueryClient({
         defaultOptions: {
             queries: {
-                retry: true,
-                refetchOnWindowFocus: true,
-                refetchOnMount: false,
-                refetchOnReconnect: false,
+                refetchOnMount: "always",
+                refetchOnReconnect: "always",
+                refetchOnWindowFocus: "always",
+                optimisticResults: true,
             },
         },
     });
 
     useEffect(() => {
+        AxiosRefreshInterceptor.createAxiosRefreshInterceptor();
+
         if (
             localStorage.theme === "dark" ||
             (!("theme" in localStorage) &&
