@@ -17,17 +17,21 @@ class AxiosRefreshInterceptor {
                 if (!this.isRefreshing) {
                     this.isRefreshing = true;
 
-                    axios
-                        .post(
+                    try {
+                        await axios.post(
                             `${OpenAPI.BASE}/authorization/refresh`,
                             {},
                             {
                                 withCredentials: true,
                             }
-                        )
-                        .then()
-                        .catch()
-                        .finally(() => (this.isRefreshing = false));
+                        );
+
+                        this.isRefreshing = false;
+                    } catch {
+                        this.isRefreshing = false;
+
+                        return Promise.reject(error);
+                    }
                 }
 
                 while (this.isRefreshing) {
@@ -35,7 +39,7 @@ class AxiosRefreshInterceptor {
                 }
 
                 this.createAxiosRefreshInterceptor();
-                
+
                 return axios(error.response.config);
             }
         );
