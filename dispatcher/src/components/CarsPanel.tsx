@@ -71,7 +71,7 @@ export const CarsPanel: React.FC = () => {
                 onClose={() => setDialogOpen(false)}
                 onOk={() => setDialogOpen(false)}
             />
-            <Card className=" h-full" title="Панель автомобилей">
+            <Card title="Панель автомобилей">
                 <div className="flex space-x-2">
                     <Button type="dashed" onClick={() => setDialogOpen(true)}>
                         Все машины

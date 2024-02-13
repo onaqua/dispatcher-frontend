@@ -4,69 +4,37 @@ import ClientsPanel from "../components/ClientsPanel";
 import PreQueuePanel from "../components/PreQueuePanel";
 import QueuePanel from "../components/QueuePanel";
 import RecipesPanel from "../components/RecipesPanel";
-import { Permission } from "../components/Permission";
-import { DispatcherPermissions } from "../consts/Permissions";
 
 export const HomePage: React.FC = () => {
     return (
-        <Row className="p-8 h-screen">
-            <Col
-                xxl={12}
-                xl={12}
-                xs={24}
-                md={24}
-                className="items-center justify-center h-full bg-yellow"
-            >
-                <Row gutter={[24, 24]} className=" w-full h-1/6">
-                    <Permission need={DispatcherPermissions.ClientsView}>
-                        <Col
-                            xxl={12}
-                            xl={24}
-                            xs={24}
-                            md={24}
-                            className=" w-full"
-                        >
+        <>
+            <Row className="p-2 w-full" gutter={[14, 4]}>
+                <Col xxl={12} md={24}>
+                    <Row
+                        className="h-full w-full space-y-11"
+                        justify={"space-evenly"}
+                    >
+                        <Col xxl={24} md={24} className=" w-full" order={1}>
                             <ClientsPanel />
                         </Col>
-                    </Permission>
-
-                    <Permission need={DispatcherPermissions.CarsView}>
-                        <Col xxl={12} xl={24} xs={24} md={24}>
+                        <Col xxl={24} md={24} className=" w-full" order={2}>
                             <CarsPanel />
                         </Col>
-                    </Permission>
+                    </Row>
+                </Col>
 
-                    <Permission need={DispatcherPermissions.RecipesView}>
-                        <Col span={24}>
-                            <RecipesPanel />
-                        </Col>
-                    </Permission>
-                </Row>
-            </Col>
+                <Col xxl={12} md={24} className=" w-full">
+                    <PreQueuePanel />
+                </Col>
 
-            <Col xxl={12} xl={12} xs={24} md={24} className="flex">
-                <Row gutter={[24, 32]} className="w-full h-fit">
-                    <Permission
-                        need={
-                            DispatcherPermissions.ApplicationsInPreQueueView
-                        }
-                    >
-                        <Col xxl={24} xl={24} xs={24} md={24}>
-                            <PreQueuePanel />
-                        </Col>
-                    </Permission>
+                <Col xxl={12} md={24} className=" w-full" order={2}>
+                    <RecipesPanel />
+                </Col>
 
-                    <Permission
-                        need={
-                            DispatcherPermissions.ApplicationsInQueueView
-                        }
-                    >
-                        <Col xxl={24} xl={24} xs={24} md={24}>
-                            <QueuePanel />
-                        </Col>
-                    </Permission>
-                </Row>
-            </Col>
-        </Row>
+                <Col xxl={12} md={24} className=" w-full" order={4}>
+                    <QueuePanel />
+                </Col>
+            </Row>
+        </>
     );
 };

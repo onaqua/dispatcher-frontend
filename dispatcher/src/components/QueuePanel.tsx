@@ -80,14 +80,13 @@ export const QueuePanel: React.FC = () => {
                 onOk={closeApplicationDialog}
             />
 
-            <Card className=" h-full" title="Очередь оператора">
+            <Card className=" h-full w-full" title="Очередь оператора">
                 <Table
                     size="small"
-                    className=" min-h-80 max-h-80"
                     loading={isDeleteLoading}
                     dataSource={applications}
                     pagination={{
-                        pageSize: 3,
+                        pageSize: 7,
                         showTotal(total, range) {
                             return (
                                 <Typography.Text className=" text-left">
