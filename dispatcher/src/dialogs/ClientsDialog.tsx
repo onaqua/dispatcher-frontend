@@ -1,14 +1,15 @@
-import
-    {
-        Button,
-        Input,
-        List,
-        Modal,
-        Skeleton,
-        Space,
-        Spin,
-        message
-    } from "antd";
+import {
+    Button,
+    Divider,
+    Input,
+    List,
+    Modal,
+    Skeleton,
+    Space,
+    Spin,
+    Typography,
+    message,
+} from "antd";
 import Search from "antd/es/input/Search";
 import React, { ChangeEvent, useState } from "react";
 import { MdDeleteOutline, MdModeEditOutline } from "react-icons/md";
@@ -322,6 +323,16 @@ export const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
                         )}
                         scrollableTarget="scrollableDiv"
                         next={fetchNextPage}
+                        endMessage={
+                            <>
+                                <div className="text-center">
+                                    <Divider />
+                                    <Typography.Text className=" text-center">
+                                        Больше ничего нет
+                                    </Typography.Text>
+                                </div>
+                            </>
+                        }
                         hasMore={hasNextPage ?? false}
                         loader={
                             <Skeleton active paragraph={{ rows: 1 }}></Skeleton>

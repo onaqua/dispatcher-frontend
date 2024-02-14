@@ -1,15 +1,16 @@
-import
-    {
-        Button,
-        Input,
-        InputNumber,
-        List,
-        Modal,
-        Skeleton,
-        Space,
-        Spin,
-        message,
-    } from "antd";
+import {
+    Button,
+    Divider,
+    Input,
+    InputNumber,
+    List,
+    Modal,
+    Skeleton,
+    Space,
+    Spin,
+    Typography,
+    message,
+} from "antd";
 import Search from "antd/es/input/Search";
 import React, { ChangeEvent, useState } from "react";
 import { MdDeleteOutline, MdModeEditOutline } from "react-icons/md";
@@ -315,6 +316,16 @@ export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
                             (acc, page) => acc + page.items.length,
                             0
                         )}
+                        endMessage={
+                            <>
+                                <div className="text-center">
+                                    <Divider />
+                                    <Typography.Text className=" text-center">
+                                        Больше ничего нет
+                                    </Typography.Text>
+                                </div>
+                            </>
+                        }
                         scrollableTarget="scrollableDiv"
                         next={fetchNextPage}
                         hasMore={hasNextPage ?? false}
