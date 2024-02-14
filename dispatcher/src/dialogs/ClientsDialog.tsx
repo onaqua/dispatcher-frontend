@@ -1,14 +1,24 @@
-import { Button, Form, Input, Modal, Popconfirm, Table, message } from "antd";
-import React, { useState } from "react";
-import { IoSave } from "react-icons/io5";
-import { MdCancel, MdDelete, MdEdit } from "react-icons/md";
-import { useMutation, useQuery } from "react-query";
+import
+    {
+        Button,
+        Input,
+        List,
+        Modal,
+        Skeleton,
+        Space,
+        Spin,
+        message
+    } from "antd";
+import Search from "antd/es/input/Search";
+import React, { ChangeEvent, useState } from "react";
+import { MdDeleteOutline, MdModeEditOutline } from "react-icons/md";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { InfiniteData, useInfiniteQuery, useMutation } from "react-query";
 import { PagedList } from "../entities/PagedList";
-import { ProductionClientDTO } from "../entities/ProductionClientDTO";
+import ProductionClientDTO from "../entities/ProductionClientDTO";
+import { CarsService } from "../services/CarsService";
 import { ClientsService } from "../services/ClientsService";
 import { ApiError } from "../services/core/ApiError";
-import { PaginationProps } from "../types/PaginationProps";
-import { EditableCell } from "./EditableCell";
 
 export type CreateClientDialogProps = {
     isOpen: boolean;
@@ -16,299 +26,270 @@ export type CreateClientDialogProps = {
     onOk?(): void;
 };
 
-export interface ClientItem {
-    id: number | undefined;
-    address: string;
-    name: string;
-}
+export type ClientEditingProps<T extends ProductionClientDTO> = {
+    data: T;
+    onUpdate?(id: number, data: T): Promise<ProductionClientDTO>;
+    onDelete?(id: number): Promise<void>;
+    onCreate?(data: T): Promise<ProductionClientDTO>;
+};
+
+const CarEditingItem = <T extends ProductionClientDTO>(
+    props: ClientEditingProps<T> & {}
+) => {
+    const [id, setId] = useState(props.data.id);
+
+    const [updatedData, setUpdatedData] = useState(props.data);
+
+    const [isEditing, setEditing] = useState(
+        props.data.id == -1 ? true : false
+    );
+
+    const [isLoading, setLoading] = useState(false);
+
+    const switchEditingMode = () => {
+        setEditing(!isEditing);
+    };
+
+    const handleCancel = () => {
+        setUpdatedData(props.data);
+        switchEditingMode();
+    };
+
+    const handleDelete = async () => {
+        setLoading(true);
+
+        if (props.onDelete) {
+            try {
+                await props.onDelete(props.data.id);
+            } catch {}
+        }
+
+        setLoading(false);
+    };
+
+    const handleUpdate = async () => {
+        setLoading(true);
+
+        if (props.data.id !== -1 && props.onUpdate) {
+            try {
+                const updatedClient = await props.onUpdate(id, updatedData);
+                props.data.id = updatedClient.id;
+                setId(updatedClient.id);
+            } catch {}
+        }
+
+        if (props.data.id == -1 && props.onCreate) {
+            try {
+                const createdClient = await props.onCreate(updatedData);
+                props.data.id = createdClient.id;
+                setId(createdClient.id);
+            } catch {}
+        }
+
+        props.data.name = updatedData.name;
+        props.data.address = updatedData.address;
+
+        switchEditingMode();
+        setLoading(false);
+    };
+
+    const handleAddressChanged = (value: string) => {
+        setUpdatedData({ ...updatedData, address: value });
+    };
+
+    const handleNameChanged = (value: string) => {
+        setUpdatedData({ ...updatedData, name: value });
+    };
+
+    if (isEditing) {
+        return (
+            <>
+                <Spin spinning={isLoading}>
+                    <Space direction="vertical" className="w-full mt-2">
+                        <Input
+                            placeholder="Имя"
+                            value={updatedData.name}
+                            onChange={(e) => handleNameChanged(e.target.value)}
+                            defaultValue={props.data.name}
+                        ></Input>
+
+                        <Input
+                            className="w-full"
+                            value={updatedData.address}
+                            onChange={(e) =>
+                                handleAddressChanged(e.target.value)
+                            }
+                            placeholder="Адрес"
+                            defaultValue={props.data.address}
+                        ></Input>
+
+                        <div className=" text-right space-x-2">
+                            <Button onClick={handleCancel}>Отменить</Button>
+                            <Button onClick={handleUpdate} type="primary">
+                                Сохранить
+                            </Button>
+                        </div>
+                    </Space>
+                </Spin>
+            </>
+        );
+    }
+
+    return (
+        <>
+            <Spin spinning={isLoading} key={props.data.id}>
+                <List.Item
+                    key={props.data.id}
+                    actions={[
+                        <Button
+                            onClick={switchEditingMode}
+                            icon={<MdModeEditOutline />}
+                        />,
+                        <Button
+                            danger
+                            onClick={handleDelete}
+                            icon={<MdDeleteOutline />}
+                        />,
+                    ]}
+                >
+                    <>
+                        <List.Item.Meta
+                            title={props.data.name}
+                            description={props.data.address.toString()}
+                        />
+                    </>
+                </List.Item>
+            </Spin>
+        </>
+    );
+};
 
 export const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
     isOpen,
     onClose,
     onOk,
 }) => {
-    const [form] = Form.useForm();
-    const [editingId, setEditingKey] = useState<number | undefined>(undefined);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(5);
-    const [clients, setClients] = useState<PagedList<ClientItem>>({
-        items: [],
-        totalItems: 0,
-    });
+    const [query, setQuery] = useState("");
+    const [pageSize] = useState(10);
+    const [clients, setClients] = useState<
+        InfiniteData<PagedList<ProductionClientDTO>>
+    >();
 
-    const { isLoading: isClientsLoading } = useQuery<
+    const isNewClientExists = (): boolean => {
+        return (
+            clients?.pages.find((x) => x.items.find((x) => x.id == -1)) !==
+            undefined
+        );
+    };
+
+    const { isSuccess, fetchNextPage, hasNextPage } = useInfiniteQuery<
         PagedList<ProductionClientDTO>,
         ApiError
-    >("loadClients", () => ClientsService.SearchAsync("", 0, 5), {
-        onSuccess(data) {
-            const fetchedOptions = data.items.map<ClientItem>((client) => ({
-                id: client.id,
-                address: client.address,
-                name: client.name,
-                editable: false,
-            }));
-
-            const pagedList: PagedList<ClientItem> = {
-                items: fetchedOptions,
-                totalItems: data.totalItems,
-            };
-
-            setClients(pagedList);
+    >(
+        ["loadClients", query],
+        ({ pageParam = 1 }) => {
+            return ClientsService.SearchAsync(
+                query,
+                (pageParam - 1) * pageSize,
+                pageSize
+            );
         },
-    });
-
-    const {
-        isLoading: isClientsSearching,
-        mutateAsync: searchClientsAsync,
-    } = useMutation<PagedList<ProductionClientDTO>, ApiError, PaginationProps>(
-        (pagination) =>
-            ClientsService.SearchAsync(
-                pagination.query,
-                (pagination.page - 1) * pagination.pageSize,
-                pagination.pageSize
-            ),
         {
-            onSuccess(data) {
-                const fetchedOptions = data.items.map<ClientItem>((client) => ({
-                    id: client.id,
-                    address: client.address,
-                    name: client.name,
-                    editable: false,
-                }));
+            enabled: isOpen,
+            onSuccess: setClients,
+            getNextPageParam: (_, allPages) => {
+                if (allPages.length * pageSize > allPages[0].totalItems) {
+                    return undefined;
+                }
 
-                const pagedList: PagedList<ClientItem> = {
-                    items: fetchedOptions,
-                    totalItems: data.totalItems,
-                };
+                const nextPage = allPages.length + 1;
 
-                setClients(pagedList);
+                return nextPage;
             },
         }
     );
 
-    const {
-        mutateAsync: updateClientAsync,
-        isLoading: isClientUpdating,
-    } = useMutation<ProductionClientDTO, ApiError, ProductionClientDTO>(
-        (client) =>
-            ClientsService.UpdateAsync(client.id, {
-                name: client.name,
-                address: client.address,
-            })
+    const { mutateAsync: deleteClientAsync } = useMutation<
+        void,
+        ApiError,
+        number
+    >(
+        async (id) => {
+            if (id !== -1) {
+                await ClientsService.DeleteAsync(id);
+            }
+
+            return;
+        },
+        {
+            onError(err) {
+                message.error(err.body.Details);
+            },
+            onSuccess(_, variables) {
+                const newPages = clients?.pages.map<
+                    PagedList<ProductionClientDTO>
+                >((page) => ({
+                    items: page.items.filter((x) => x.id !== variables),
+                    totalItems: page.totalItems,
+                }));
+
+                if (newPages) {
+                    setClients({
+                        ...clients,
+                        pages: newPages,
+                        pageParams: clients?.pageParams ?? [],
+                    });
+                }
+            },
+        }
     );
 
-    const {
-        mutateAsync: createClientAsync,
-        isLoading: isClientCreating,
-    } = useMutation<ProductionClientDTO, ApiError, ProductionClientDTO>(
+    const { mutateAsync: updateClientAsync } = useMutation<
+        ProductionClientDTO,
+        ApiError,
+        { id: number; data: ProductionClientDTO }
+    >(
+        (record) =>
+            ClientsService.UpdateAsync(record.id, {
+                name: record.data.name,
+                address: record.data.address,
+            }),
+        {
+            onError(err) {
+                message.error(err.body.Details);
+            },
+        }
+    );
+
+    const { mutateAsync: createClientAsync } = useMutation<
+        ProductionClientDTO,
+        ApiError,
+        ProductionClientDTO
+    >(
         (client) =>
             ClientsService.CreateAsync({
                 name: client.name,
                 address: client.address,
             }),
         {
-            onSuccess(Client) {
-                console.log(clients.items);
-
-                const filteredClients = clients.items.filter((c) => c.id != -1);
-
-                filteredClients.push(Client);
-
-                setClients({
-                    items: filteredClients,
-                    totalItems: clients.totalItems,
-                });
+            onError(err) {
+                message.error(err.body.Details);
             },
         }
     );
 
-    const {
-        mutateAsync: deleteClientAsync,
-        isLoading: isClientDeleting,
-    } = useMutation<void, ApiError, ProductionClientDTO>(
-        (Client) => ClientsService.DeleteAsync(Client.id),
-        {
-            onSuccess(_, v) {
-                setClients({
-                    items: clients.items.filter((c) => c.id !== v.id),
-                    totalItems: clients.totalItems - 1,
-                });
-            },
-            onError(error) {
-                message.error(error.body.Details);
-            },
-        }
-    );
-
-    const columns = [
-        {
-            title: "Имя клиента",
-            dataIndex: "name",
-            editable: true,
-        },
-        {
-            title: "Адрес",
-            dataIndex: "address",
-            editable: true,
-        },
-        {
-            dataIndex: "operation",
-            render: (_: any, record: ClientItem) => {
-                const editable = isEditing(record);
-                return editable ? (
-                    <span>
-                        <Button type="link" onClick={() => save(record.id)}>
-                            <IoSave color="geekblue" />
-                        </Button>
-                        <Popconfirm
-                            title="Ваши изменения не сохранятся, вы  уверены что хотите выйти без сохранения?"
-                            onConfirm={cancel}
-                        >
-                            <Button type="link">
-                                <MdCancel />
-                            </Button>
-                        </Popconfirm>
-                    </span>
-                ) : (
-                    <span>
-                        <Button
-                            type="link"
-                            disabled={editingId !== undefined}
-                            onClick={() => editClient(record)}
-                        >
-                            <MdEdit />
-                        </Button>
-
-                        <Button
-                            type="link"
-                            disabled={editingId !== undefined}
-                            onClick={() => deleteClient(record)}
-                        >
-                            <MdDelete />
-                        </Button>
-                    </span>
-                );
-            },
-        },
-    ];
-
-    const mergedColumns = columns.map((col) => {
-        if (!col.editable) {
-            return col;
-        }
-        return {
-            ...col,
-            onCell: (record: ClientItem) => ({
-                record,
-                inputType: col.dataIndex === "age" ? "number" : "text",
-                dataIndex: col.dataIndex,
-                title: col.title,
-                editing: isEditing(record),
-            }),
-        };
-    });
-
-    const isEditing = (record: ClientItem) => record.id === editingId;
-
-    const editClient = (record: ClientItem) => {
-        form.setFieldsValue({ ...record });
-        setEditingKey(record.id);
+    const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
+        setQuery(event.target.value);
     };
 
-    const cancel = () => {
-        if (editingId == -1) {
-            setClients({
-                items: clients.items.filter((c) => c.id !== editingId),
-                totalItems: clients.totalItems - 1,
-            });
-        }
-
-        return setEditingKey(undefined);
-    };
-
-    const deleteClient = async (record: ClientItem) => {
-        await deleteClientAsync({
-            id: record.id!,
-            name: record.name,
-            address: record.address,
-        });
-    };
-
-    const addClient = async () => {
-        const newClient: ClientItem = {
-            id: -1,
-            address: "",
+    const handleAddClient = () => {
+        clients?.pages[0].items.push({
             name: "Новый клиент",
-        };
-
-        const newData = [...clients.items];
-
-        newData.unshift(newClient);
-
-        setClients({ items: newData, totalItems: clients.totalItems + 1 });
-        setCurrentPage(1);
-        editClient(newClient);
-    };
-
-    const save = async (id: number | undefined) => {
-        try {
-            const row = (await form.validateFields()) as ClientItem;
-
-            const newData = [...clients.items];
-            const Client = newData.find((item) => id === item.id);
-
-            if (Client?.id !== undefined && Client.id > -1) {
-                const index = newData.findIndex((item) => id === item.id);
-                const item = newData[index];
-
-                newData.splice(index, 1, {
-                    ...item,
-                    ...row,
-                });
-                const newItem = newData[index];
-
-                await updateClientAsync({
-                    id: newItem.id!,
-                    name: newItem.name,
-                    address: newItem.address,
-                });
-
-                setClients({ items: newData, totalItems: clients.totalItems });
-                setEditingKey(undefined);
-            } else {
-                await createClientAsync({
-                    id: row.id!,
-                    name: row.name,
-                    address: row.address,
-                });
-
-                setEditingKey(undefined);
-            }
-        } catch (errInfo) {
-            console.log("Validate Failed:", errInfo);
-        }
-    };
-
-    const handleSearch = async (query: string) => {
-        setSearchQuery(query);
-        setCurrentPage(1);
-
-        await searchClientsAsync({ page: 1, pageSize: 5, query: query });
-    };
-
-    const handlePageChanged = async (
-        page: number,
-        pageSize: number
-    ): Promise<void> => {
-        cancel();
-        setCurrentPage(page);
-
-        await searchClientsAsync({
-            page: page,
-            pageSize: pageSize,
-            query: searchQuery,
+            address: "",
+            id: -1,
         });
+
+        setClients({ ...clients, pages: clients!.pages, pageParams: [] });
     };
 
     return (
@@ -322,46 +303,55 @@ export const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
             cancelText="Отмена"
             okText="Закрыть"
         >
-            <div className=" space-y-2">
-                <Input.Search
-                    value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    placeholder="Начните ввод для поиска"
-                ></Input.Search>
-                <Form form={form} component={false}>
-                    <Table
-                        loading={
-                            isClientDeleting ||
-                            isClientUpdating ||
-                            isClientCreating ||
-                            isClientsLoading ||
-                            isClientsSearching
+            <Search
+                placeholder="Начните ввод для поиска"
+                value={query}
+                onChange={handleSearch}
+            ></Search>
+
+            <div
+                id="scrollableDiv"
+                className="overflow-auto"
+                style={{ height: 400 }}
+            >
+                {isSuccess && clients?.pages && (
+                    <InfiniteScroll
+                        dataLength={clients.pages.reduce(
+                            (acc, page) => acc + page.items.length,
+                            0
+                        )}
+                        scrollableTarget="scrollableDiv"
+                        next={fetchNextPage}
+                        hasMore={hasNextPage ?? false}
+                        loader={
+                            <Skeleton active paragraph={{ rows: 1 }}></Skeleton>
                         }
-                        components={{
-                            body: {
-                                cell: EditableCell,
-                            },
-                        }}
-                        bordered
-                        columns={mergedColumns}
-                        dataSource={clients.items}
-                        rowClassName="editable-row"
-                        pagination={{
-                            pageSize: pageSize,
-                            current: currentPage,
-                            total: clients.totalItems,
-                            onChange: handlePageChanged,
-                        }}
-                    />
-                </Form>
-                <Button
-                    disabled={editingId !== undefined}
-                    className=" right-0"
-                    onClick={addClient}
-                >
-                    Добавить клиента
-                </Button>
+                    >
+                        <List
+                            dataSource={clients.pages}
+                            renderItem={(item) =>
+                                item.items.map((car) => (
+                                    <CarEditingItem
+                                        data={car}
+                                        onCreate={createClientAsync}
+                                        onDelete={deleteClientAsync}
+                                        onUpdate={(e, v) =>
+                                            updateClientAsync({
+                                                id: e,
+                                                data: v,
+                                            })
+                                        }
+                                    />
+                                ))
+                            }
+                        />
+                    </InfiniteScroll>
+                )}
             </div>
+
+            <Button disabled={isNewClientExists()} onClick={handleAddClient}>
+                Добавить
+            </Button>
         </Modal>
     );
 };

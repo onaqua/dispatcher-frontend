@@ -3,7 +3,6 @@ import { ChangeEvent, useState } from "react";
 import { useQuery } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { DispatcherPermissions } from "../consts/Permissions";
-import { CreateClientDialog } from "../dialogs/ClientsDialog";
 import { PagedList } from "../entities/PagedList";
 import ProductionClientDTO from "../entities/ProductionClientDTO";
 import { ClientsService } from "../services/ClientsService";
@@ -12,6 +11,7 @@ import { ApiError } from "../services/core/ApiError";
 import { setClient, setInvoice } from "../store/reducers/dispatcherSlice";
 import { RootState } from "../store/store";
 import { TypedOption } from "../types/TypedOption";
+import { CreateClientDialog } from "../dialogs/ClientsDialog";
 
 export const ClientsPanel: React.FC = () => {
     const client = useSelector((state: RootState) => state.dispatcher.client);

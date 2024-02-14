@@ -15,7 +15,7 @@ export const App: React.FC = () => {
             queries: {
                 refetchOnMount: "always",
                 refetchOnReconnect: "always",
-                refetchOnWindowFocus: "always",
+                refetchOnWindowFocus: false,
                 optimisticResults: true,
             },
         },

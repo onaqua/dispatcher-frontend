@@ -10,6 +10,26 @@ module.exports = {
     content: ["./src/**/*.{js,jsx,ts,tsx}"],
     darkMode: "class",
     theme: {
+        scrollbar: (theme) => ({
+            DEFAULT: {
+                size: theme("spacing.2"),
+                track: {
+                    background: theme("colors.gray.300"),
+                    darkBackground: theme("colors.gray.800"),
+                    borderRadius: theme("borderRadius.DEFAULT"),
+                },
+                thumb: {
+                    background: theme("colors.gray.400"),
+                    darkBackground: theme("colors.gray.600"),
+                    borderRadius: theme("borderRadius.DEFAULT"),
+                },
+                hover: {
+                    background: theme("colors.gray.500"),
+                    darkBackground: theme("colors.gray.500"),
+                    borderRadius: theme("borderRadius.DEFAULT"),
+                },
+            },
+        }),
         extend: {
             animation: {
                 "meteor-effect": "meteor 5s linear infinite",
@@ -31,6 +51,7 @@ module.exports = {
     },
     corePlugins: { preflight: false },
     plugins: [
+        require("@gradin/tailwindcss-scrollbar"),
         require("@tailwindcss/aspect-ratio"),
         addVariablesForColors,
         function ({ matchUtilities, theme }: any) {
