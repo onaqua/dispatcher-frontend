@@ -1,20 +1,21 @@
-import {
-    Button,
-    Card,
-    Checkbox,
-    Col,
-    Input,
-    InputNumber,
-    List,
-    Row,
-    Segmented,
-    Select,
-    Space,
-    Typography,
-    message,
-} from "antd";
+import
+    {
+        Button,
+        Card,
+        Checkbox,
+        Col,
+        Input,
+        InputNumber,
+        List,
+        Row,
+        Segmented,
+        Select,
+        Space,
+        Typography,
+        message,
+    } from "antd";
 import { SegmentedValue } from "antd/es/segmented";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { ConfirmApplicationDialog } from "../dialogs/ConfirmApplicationDialog";
@@ -29,15 +30,15 @@ import { MixersService } from "../services/MixersService";
 import { RecipesService } from "../services/RecipesService";
 import { ApiError } from "../services/core/ApiError";
 import { AddApplicationInPreQueueRequest } from "../services/requests/LoginRequest";
-import {
-    setCategory,
-    setMixer,
-    setQuickApplication,
-    setRecipe,
-    setVolume,
-} from "../store/reducers/dispatcherSlice";
+import
+    {
+        setCategory,
+        setMixer,
+        setQuickApplication,
+        setRecipe,
+        setVolume,
+    } from "../store/reducers/dispatcherSlice";
 import { RootState } from "../store/store";
-import { PaginationProps } from "../types/PaginationProps";
 import { TypedOption } from "../types/TypedOption";
 
 type RecipeOption = {

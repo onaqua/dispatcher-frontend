@@ -1,4 +1,4 @@
-import { Button, Card, Modal, Space, Table, Typography, message } from "antd";
+import { Button, Card, Space, Table, Typography, message } from "antd";
 import { IoArrowDownCircleOutline } from "react-icons/io5";
 
 import { MdOutlineDelete } from "react-icons/md";
