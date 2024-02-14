@@ -1,0 +1,1 @@
+export const ApiUrl = import.meta.env.VITE_APP_URL || "http://localhost:6100";

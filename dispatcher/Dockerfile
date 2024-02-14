@@ -1,6 +1,8 @@
 # Указываем базовый образ, содержащий Node.js
 FROM node:latest
 
+ARG APP_URL
+ENV VITE_APP_URL $APP_URL
 # Указываем рабочую директорию в контейнере
 WORKDIR /app
 

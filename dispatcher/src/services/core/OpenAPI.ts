@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import { ApiUrl } from "../../Config";
 import type { ApiRequestOptions } from "./ApiRequestOptions";
 
 type Resolver<T> = (options: ApiRequestOptions) => Promise<T>;
@@ -20,7 +21,7 @@ export type OpenAPIConfig = {
 };
 
 export const OpenAPI: OpenAPIConfig = {
-  BASE: 'http://localhost:6100/api/dispatcher',
+  BASE: `${ApiUrl}/api/dispatcher`,
   VERSION: "1.0",
   WITH_CREDENTIALS: true,
   CREDENTIALS: "include",

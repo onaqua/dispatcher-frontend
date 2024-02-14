@@ -26,6 +26,7 @@ import {
 } from "../store/reducers/applicationsInQueueSlice";
 import { setApplication } from "../store/reducers/dispatcherSlice";
 import { RootState } from "../store/store";
+import { ApiUrl } from "../Config";
 
 export type SocketLayoutProps = {
     element: React.ReactNode;
@@ -198,7 +199,7 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
     useEffect(() => {
         async function connectAsync() {
             const connection = new HubConnectionBuilder()
-                .withUrl(`http://localhost:6100/signalr/notifications-hub`)
+                .withUrl(`${ApiUrl}/signalr/notifications-hub`)
                 .withAutomaticReconnect(new ConnectionRetryPolicy())
                 .build();
 
