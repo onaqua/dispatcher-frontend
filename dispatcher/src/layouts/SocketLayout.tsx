@@ -269,10 +269,10 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
         <>
             {!isConnected && (
                 <WavyBackground>
-                    <p className="text-2xl md:text-4xl lg:text-7xl dark:text-white text-slate-800 font-bold inter-var text-center">
+                    <p className="text-2xl md:text-4xl lg:text-7xl dark:text-white text-slate-900 font-bold inter-var text-center">
                         Подключение к производству...
                     </p>
-                    <p className="text-base md:text-lg mt-4 dark:text-white text-slate-800 font-normal inter-var text-center">
+                    <p className="text-base md:text-lg mt-4 dark:text-white text-slate-900  font-normal inter-var text-center">
                         Производство автоматически подключится через несколько
                         секунд. <br /> Если проблема долго не исчезает, то вам
                         необходимо проверить интернет подключение на компьютере,
