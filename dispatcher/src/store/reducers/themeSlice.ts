@@ -25,7 +25,7 @@ const lightTheme: ThemeConfig = {
 };
 
 const initialState: ThemeState = {
-    currentTheme: darkTheme,
+    currentTheme: lightTheme,
 };
 
 const themeSlice = createSlice({

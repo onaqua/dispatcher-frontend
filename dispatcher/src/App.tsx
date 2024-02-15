@@ -25,14 +25,17 @@ export const App: React.FC = () => {
     });
 
     const dispatch = useDispatch();
-
     const currentTheme = useSelector(
         (root: RootState) => root.themes.currentTheme
     );
 
     useEffect(() => {
+        if (localStorage.getItem("theme") === "dark") {
+            dispatch(setTheme("dark"));
+        } else {
+            dispatch(setTheme("light"));
+        }
         AxiosRefreshInterceptor.createAxiosRefreshInterceptor();
-        dispatch(setTheme("light"));
     }, []);
 
     return (
