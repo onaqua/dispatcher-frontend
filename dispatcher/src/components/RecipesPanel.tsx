@@ -310,7 +310,7 @@ export const RecipesPanel: React.FC = () => {
                     </Row>
 
                     <Row gutter={[36, 16]}>
-                        {mixers?.length > 0 && (
+                        {mixers?.length > 1 && (
                             <Col xxl={12} xl={12} md={12} xs={24} lg={24}>
                                 <Segmented
                                     className=" w-full"
@@ -328,7 +328,7 @@ export const RecipesPanel: React.FC = () => {
                             </Col>
                         )}
 
-                        <Col xxl={12} xl={12} md={12} xs={24} lg={24}>
+                        <Col xxl={5} xl={6} md={6} xs={24} lg={24}>
                             <InputNumber
                                 onChange={handleVolumeChanged}
                                 placeholder="Введите объём заявки"
