@@ -1,17 +1,17 @@
-import {
-    Button,
-    Card,
-    Divider,
-    Form,
-    Input,
-    Space,
-    Spin,
-    Typography,
-    message,
-} from "antd";
+import
+    {
+        Button,
+        Card,
+        Divider,
+        Form,
+        Input,
+        Space,
+        Spin,
+        Typography,
+        message,
+    } from "antd";
 import { useMutation } from "react-query";
 import { useNavigate } from "react-router-dom";
-import { CardContainer, CardItem } from "../components/3d-card";
 import { BackgroundBeams } from "../components/BackgroundBeams";
 import { AuthorizationService } from "../services/AuthorizationService";
 import { ApiError } from "../services/core/ApiError";
@@ -49,85 +49,80 @@ export const LoginPage: React.FC = () => {
 
     return (
         <>
-            <div className="h-screen dark:bg-slate-900 relative flex flex-col items-center justify-center antialiased">
+            <div className="h-screen dark:bg-slate-900 bg-slate-100 relative flex flex-col items-center justify-center antialiased">
                 <BackgroundBeams />
 
                 <Spin spinning={isLoading}>
-                    <CardContainer>
-                        <CardItem>
-                            <Card title="Диспетчер">
-                                <Space
-                                    direction="vertical"
-                                    align="center"
-                                    className=" w-full"
+                    <Card title="Диспетчер">
+                        <Space
+                            direction="vertical"
+                            align="center"
+                            className=" w-full"
+                        >
+                            <Typography.Text className="text-slate-400">
+                                Заполните ваш почтовый адрес и пароль
+                            </Typography.Text>
+
+                            {isError && (
+                                <Typography.Text type="danger">
+                                    Неправильный логин или пароль
+                                </Typography.Text>
+                            )}
+                        </Space>
+
+                        <Form
+                            className="mt-5"
+                            name="basic"
+                            labelCol={{ span: 24 }}
+                            wrapperCol={{ span: 24 }}
+                            style={{ maxWidth: 600 }}
+                            onFinish={handleSubmit}
+                        >
+                            <Form.Item<LoginFields>
+                                name="email"
+                                label="Почтовый адрес"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Заполните почтовый адрес!",
+                                    },
+                                ]}
+                                children={<Input />}
+                            />
+
+                            <Form.Item<LoginFields>
+                                name="password"
+                                label="Пароль"
+                                rules={[
+                                    {
+                                        required: true,
+                                        message: "Заполните пароль!",
+                                    },
+                                ]}
+                                children={<Input.Password />}
+                            />
+                            <Divider />
+                            <Form.Item>
+                                <Button
+                                    className="w-full"
+                                    type="primary"
+                                    htmlType="submit"
                                 >
-                                    <Typography.Text className="text-slate-400">
-                                        Заполните ваш почтовый адрес и пароль
-                                    </Typography.Text>
+                                    Войти
+                                </Button>
+                            </Form.Item>
 
-                                    {isError && (
-                                        <Typography.Text type="danger">
-                                            Неправильный логин или пароль
-                                        </Typography.Text>
-                                    )}
-                                </Space>
-
-                                <Form
-                                    className="mt-5"
-                                    name="basic"
-                                    labelCol={{ span: 24 }}
-                                    wrapperCol={{ span: 24 }}
-                                    style={{ maxWidth: 600 }}
-                                    onFinish={handleSubmit}
+                            <Form.Item>
+                                <Button
+                                    className="w-full"
+                                    type="dashed"
+                                    htmlType="button"
                                 >
-                                    <Form.Item<LoginFields>
-                                        name="email"
-                                        label="Почтовый адрес"
-                                        rules={[
-                                            {
-                                                required: true,
-                                                message:
-                                                    "Заполните почтовый адрес!",
-                                            },
-                                        ]}
-                                        children={<Input />}
-                                    />
-
-                                    <Form.Item<LoginFields>
-                                        name="password"
-                                        label="Пароль"
-                                        rules={[
-                                            {
-                                                required: true,
-                                                message: "Заполните пароль!",
-                                            },
-                                        ]}
-                                        children={<Input.Password />}
-                                    />
-                                    <Divider />
-                                    <Form.Item>
-                                        <Button
-                                            className="w-full"
-                                            type="primary"
-                                            htmlType="submit"
-                                        >
-                                            Войти
-                                        </Button>
-                                    </Form.Item>
-
-                                    <Form.Item>
-                                        <Button
-                                            className="w-full"
-                                            type="dashed"
-                                            htmlType="button"
-                                        >
-                                            Восстановить аккаунт
-                                        </Button>
-                                    </Form.Item>
-                                </Form>
-                            </Card>
-                        </CardItem>
-                    </CardContainer>
+                                    Восстановить аккаунт
+                                </Button>
+                            </Form.Item>
+                        </Form>
+                    </Card>
                 </Spin>
             </div>
         </>

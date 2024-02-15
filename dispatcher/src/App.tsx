@@ -1,13 +1,16 @@
-import { ConfigProvider, theme } from "antd";
+import { ConfigProvider } from "antd";
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { useDispatch, useSelector } from "react-redux";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./App.css";
+import AxiosRefreshInterceptor from "./interceptors/refreshInterceptor";
 import { PrivateLayout } from "./layouts/PrivateLayout";
 import { EventsPage } from "./pages/EventsPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
-import AxiosRefreshInterceptor from "./interceptors/refreshInterceptor";
+import { setTheme } from "./store/reducers/themeSlice";
+import { RootState } from "./store/store";
 
 export const App: React.FC = () => {
     const queryClient = new QueryClient({
@@ -21,36 +24,19 @@ export const App: React.FC = () => {
         },
     });
 
+    const dispatch = useDispatch();
+
+    const currentTheme = useSelector(
+        (root: RootState) => root.themes.currentTheme
+    );
+
     useEffect(() => {
         AxiosRefreshInterceptor.createAxiosRefreshInterceptor();
-
-        if (
-            localStorage.theme === "dark" ||
-            (!("theme" in localStorage) &&
-                window.matchMedia("(prefers-color-scheme: dark)").matches)
-        ) {
-            document.documentElement.classList.add("dark");
-        }
-
-        localStorage.theme = "dark";
+        dispatch(setTheme("light"));
     }, []);
 
     return (
-        <ConfigProvider
-            theme={{
-                token: {
-                    wireframe: true,
-                    colorTextBase: "#ffffff",
-                    colorTextSecondary: "#ffffff",
-                    colorTextDescription: "#ffffff",
-                    colorLink: "#38bdf8",
-                    colorBgBase: "#0f172a",
-                    colorPrimary: "#1677FF",
-                    colorInfo: "#2e65fe",
-                },
-                algorithm: theme.darkAlgorithm,
-            }}
-        >
+        <ConfigProvider theme={currentTheme}>
             <QueryClientProvider client={queryClient}>
                 <Router>
                     <Routes>

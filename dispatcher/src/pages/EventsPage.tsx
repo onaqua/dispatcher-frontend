@@ -155,7 +155,7 @@ export const EventsPage: React.FC = () => {
     }, []);
 
     return (
-        <div className=" space-y-2 w-full p-8 h-full">
+        <div className=" space-y-2 w-full p-2 h-full">
             <Card>
                 <Row style={{ marginBottom: 8 }}>
                     <Col

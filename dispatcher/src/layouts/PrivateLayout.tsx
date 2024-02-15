@@ -1,7 +1,17 @@
-import { Layout, Menu, MenuProps, Result, Row, Spin, message } from "antd";
+import {
+    Button,
+    Dropdown,
+    Layout,
+    Menu,
+    MenuProps,
+    Result,
+    Row,
+    Spin,
+    message,
+} from "antd";
 import { Content, Header } from "antd/es/layout/layout";
 import { useState } from "react";
-import { GoLog, GoStack } from "react-icons/go";
+import { GoLog, GoMoon, GoStack, GoSun } from "react-icons/go";
 import { useMutation, useQuery } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, Navigate, useNavigate } from "react-router-dom";
@@ -10,6 +20,7 @@ import { UserAccountDropdownMenu } from "../components/UserAccount";
 import UserStateDTO from "../entities/UserStateDTO";
 import { AuthorizationService } from "../services/AuthorizationService";
 import { ApiError } from "../services/core/ApiError";
+import { setTheme } from "../store/reducers/themeSlice";
 import { setUser } from "../store/reducers/userSlice";
 import { RootState } from "../store/store";
 import { SocketLayout } from "./SocketLayout";
@@ -25,6 +36,30 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
     const [isTourOpen, setTourOpen] = useState<boolean>(false);
 
     const [currentPage, setCurrentPage] = useState("panel");
+
+    const items: MenuProps["items"] = [
+        {
+            key: "light",
+            label: <a target="_blank">Светлая</a>,
+            onClick: () => dispatch(setTheme("light")),
+        },
+        {
+            key: "dark",
+            label: <a target="_blank">Темная</a>,
+            onClick: () => dispatch(setTheme("dark")),
+        },
+    ];
+
+    const themeIcon =
+        localStorage.getItem("theme") === "dark" ? <GoSun /> : <GoMoon />;
+
+    const handleThemeChange = () => {
+        dispatch(
+            setTheme(
+                localStorage.getItem("theme") === "dark" ? "light" : "dark"
+            )
+        );
+    };
 
     const {
         isError: isUserStateErrorLoaded,
@@ -70,8 +105,8 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
     if (isUserStateSuccessLoaded) {
         return (
             <>
-                <Layout className="  w-full bg-transparent h-dvh">
-                    <Header className=" m-0 pl-8">
+                <Layout className="w-full h-dvh">
+                    <Header className="m-0 p-0 bg-white dark:bg-slate-900">
                         <Row>
                             <Menu
                                 selectedKeys={[currentPage]}
@@ -98,10 +133,21 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
                                         icon: <GoLog />,
                                     },
                                 ]}
-                                theme="dark"
+                                theme={
+                                    localStorage.getItem("theme") === "light"
+                                        ? "light"
+                                        : "dark"
+                                }
                             ></Menu>
 
-                            <div className="cursor-pointer p-4 absolute right-8">
+                            <div className="cursor-pointer p-4 absolute right-8 flex items-center justify-center space-x-3">
+                                <Dropdown menu={{ items }}>
+                                    <Button
+                                        onClick={handleThemeChange}
+                                        className="justify-center items-center flex"
+                                        icon={themeIcon}
+                                    ></Button>
+                                </Dropdown>
                                 <UserAccountDropdownMenu
                                     username={`${userState?.firstName} ${userState?.lastName}`}
                                     onSignOut={handleSignOutAsync}
@@ -110,8 +156,8 @@ export const PrivateLayout: React.FC<PrivateLayoutProps> = ({ element }) => {
                         </Row>
                     </Header>
 
-                    <div className=" overflow-hidden h-dvh w-full dark:bg-slate-900 bg-black  dark:bg-grid-small-white/[0.2] bg-grid-small-black/[0.2] relative flex justify-center">
-                        <div className="h-full absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-slate-900 bg-white [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
+                    <div className=" overflow-hidden h-dvh w-full dark:bg-slate-900 bg-slate-50 dark:bg-grid-small-white/[0.2] bg-grid-small-black/[0.2] relative flex justify-center">
+                        <div className="h-full absolute pointer-events-none inset-0 flex items-center justify-center dark:bg-slate-900 bg-slate-50 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
 
                         <Layout className="bg-transparent w-full overflow-x-hidden">
                             <SocketLayout element={element} />

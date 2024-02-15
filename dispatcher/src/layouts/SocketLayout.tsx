@@ -269,10 +269,10 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
         <>
             {!isConnected && (
                 <WavyBackground>
-                    <p className="text-2xl md:text-4xl lg:text-7xl text-white font-bold inter-var text-center">
+                    <p className="text-2xl md:text-4xl lg:text-7xl dark:text-white text-slate-800 font-bold inter-var text-center">
                         Подключение к производству...
                     </p>
-                    <p className="text-base md:text-lg mt-4 text-white font-normal inter-var text-center">
+                    <p className="text-base md:text-lg mt-4 dark:text-white text-slate-800 font-normal inter-var text-center">
                         Производство автоматически подключится через несколько
                         секунд. <br /> Если проблема долго не исчезает, то вам
                         необходимо проверить интернет подключение на компьютере,
@@ -285,24 +285,3 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
         </>
     );
 };
-
-// <div className=" items-center justify-center h-full w-full p-6">
-//     <Card bordered={true} className=" h-full w-full">
-//         <Result
-//             status="500"
-//             title="Хьюстон, у нас проблемы..."
-//             subTitle={`
-//                         Ваше производство скоро переподключится, но если вы не верите, то можете потыкать на кнопку ниже.
-//                         Если проблема долго не исчезает, то вам необходимо проверить интернет подключение на компьютере, где расположена программа SmartMix.`}
-//             extra={
-//                 <Button
-//                     type="primary"
-//                     onClick={OnRetryConnectHandle}
-//                     disabled={isPingLoading}
-//                 >
-//                     Проверить подключение
-//                 </Button>
-//             }
-//         />
-//     </Card>
-// </div>
