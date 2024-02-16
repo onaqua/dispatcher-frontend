@@ -30,12 +30,12 @@ export const App: React.FC = () => {
     );
 
     useEffect(() => {
+        AxiosRefreshInterceptor.createAxiosRefreshInterceptor();
         if (localStorage.getItem("theme") === "dark") {
             dispatch(setTheme("dark"));
         } else {
             dispatch(setTheme("light"));
         }
-        AxiosRefreshInterceptor.createAxiosRefreshInterceptor();
     }, []);
 
     return (
