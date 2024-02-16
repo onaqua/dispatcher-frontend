@@ -1,28 +1,18 @@
-import
-    {
-        Badge,
-        Button,
-        Card,
-        Table,
-        Typography,
-        message
-    } from "antd";
+import { Badge, Button, Card, Table, Typography, message } from "antd";
 import { useState } from "react";
 import { MdDeleteOutline } from "react-icons/md";
 import { useMutation } from "react-query";
 import { useSelector } from "react-redux";
 import { DispatcherPermissions } from "../consts/Permissions";
-import
-    {
-        ApplicationDialog,
-        ApplicationDialogProps,
-    } from "../dialogs/ApplicatonDialog";
-import
-    {
-        ApplicationStatus,
-        ProductionApplicationDTO,
-        ProductionLayerDTO,
-    } from "../entities/ApplicationDTO";
+import {
+    ApplicationDialog,
+    ApplicationDialogProps,
+} from "../dialogs/ApplicatonDialog";
+import {
+    ApplicationStatus,
+    ProductionApplicationDTO,
+    ProductionLayerDTO,
+} from "../entities/ApplicationDTO";
 import { ProductionCarDTO } from "../entities/ProductionCarDTO";
 import ProductionClientDTO from "../entities/ProductionClientDTO";
 import { ApplicationsService } from "../services/ApplicationsService";

@@ -85,6 +85,16 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
         onError(error) {
             message.error(error.body.Details);
         },
+        retry(failureCount) {
+            if (failureCount < 3) {
+                return true;
+            }
+
+            return false;
+        },
+        retryDelay: (attemptCount) => {
+            return Math.pow(2, attemptCount) * 1000;
+        },
     });
 
     const { mutateAsync: updateApplicationInQueueAsync } = useMutation<
