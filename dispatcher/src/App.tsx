@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./App.css";
-import AxiosRefreshInterceptor from "./interceptors/refreshInterceptor";
+import { RefreshProvider } from "./interceptors/RefreshProvider";
 import { PrivateLayout } from "./layouts/PrivateLayout";
 import { EventsPage } from "./pages/EventsPage";
 import { HomePage } from "./pages/HomePage";
@@ -25,36 +25,42 @@ export const App: React.FC = () => {
     });
 
     const dispatch = useDispatch();
+
     const currentTheme = useSelector(
         (root: RootState) => root.themes.currentTheme
     );
 
     useEffect(() => {
-        AxiosRefreshInterceptor.createAxiosRefreshInterceptor();
         if (localStorage.getItem("theme") === "dark") {
             dispatch(setTheme("dark"));
         } else {
             dispatch(setTheme("light"));
         }
-    }, []);
+    });
 
     return (
         <ConfigProvider theme={currentTheme}>
-            <QueryClientProvider client={queryClient}>
-                <Router>
-                    <Routes>
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route
-                            path="/"
-                            element={<PrivateLayout element={<HomePage />} />}
-                        />
-                        <Route
-                            path="/events-logs"
-                            element={<PrivateLayout element={<EventsPage />} />}
-                        />
-                    </Routes>
-                </Router>
-            </QueryClientProvider>
+            <RefreshProvider>
+                <QueryClientProvider client={queryClient}>
+                    <Router>
+                        <Routes>
+                            <Route path="/login" element={<LoginPage />} />
+                            <Route
+                                path="/"
+                                element={
+                                    <PrivateLayout element={<HomePage />} />
+                                }
+                            />
+                            <Route
+                                path="/events-logs"
+                                element={
+                                    <PrivateLayout element={<EventsPage />} />
+                                }
+                            />
+                        </Routes>
+                    </Router>
+                </QueryClientProvider>
+            </RefreshProvider>
         </ConfigProvider>
     );
 };
