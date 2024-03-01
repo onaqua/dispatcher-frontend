@@ -8,17 +8,15 @@ import {
     ApplicationDialog,
     ApplicationDialogProps,
 } from "../dialogs/ApplicatonDialog";
-import {
-    ApplicationStatus,
-    ProductionApplicationDTO,
-    ProductionLayerDTO,
-} from "../entities/ApplicationDTO";
-import { ProductionCarDTO } from "../entities/ProductionCarDTO";
-import ProductionClientDTO from "../entities/ProductionClientDTO";
+import { Car } from "../entities/Car";
 import { ApplicationsService } from "../services/ApplicationsService";
 import { ApiError } from "../services/core/ApiError";
 import { RootState } from "../store/store";
 import { Permission } from "./Permission";
+import { RecipeLayer } from "../entities/RecipeLayer";
+import { Client } from "../entities/Client";
+import { ApplicationStatus } from "../entities/ApplicationStatus";
+import { Application } from "../entities/Application";
 
 export const QueuePanel: React.FC = () => {
     const applications = useSelector(
@@ -110,9 +108,9 @@ export const QueuePanel: React.FC = () => {
                         title="Рецепты"
                         responsive={["lg", "xs", "sm", "xl"]}
                         dataIndex="layers"
-                        render={(layers: Array<ProductionLayerDTO>) => {
+                        render={(layers: Array<RecipeLayer>) => {
                             const recipes = layers
-                                .map((layer) => layer.recipe.name)
+                                .map((layer) => layer.name)
                                 .join(", ");
 
                             return (
@@ -141,7 +139,7 @@ export const QueuePanel: React.FC = () => {
                         responsive={["lg"]}
                         title="Клиент"
                         dataIndex="client"
-                        render={(client: ProductionClientDTO) => (
+                        render={(client: Client) => (
                             <Permission
                                 need={DispatcherPermissions.ClientsView}
                                 forbiddenText="Нет доступа"
@@ -157,13 +155,13 @@ export const QueuePanel: React.FC = () => {
                         title="Машина"
                         dataIndex="car"
                         responsive={["lg"]}
-                        render={(car: ProductionCarDTO) => (
+                        render={(car: Car) => (
                             <Permission
                                 need={DispatcherPermissions.CarsView}
                                 forbiddenText="Нет доступа"
                             >
                                 <Typography.Text className=" truncate">
-                                    {car.plateNumber}
+                                    {car.name}
                                 </Typography.Text>
                             </Permission>
                         )}
@@ -243,7 +241,7 @@ export const QueuePanel: React.FC = () => {
                     <Table.Column
                         title="Действие"
                         key="action"
-                        render={(_, application: ProductionApplicationDTO) => {
+                        render={(_, application: Application) => {
                             return (
                                 <Permission
                                     need={

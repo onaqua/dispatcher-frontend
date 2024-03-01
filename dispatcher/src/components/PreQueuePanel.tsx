@@ -5,11 +5,11 @@ import { MdOutlineDelete } from "react-icons/md";
 import { useMutation } from "react-query";
 import { useSelector } from "react-redux";
 import { DispatcherPermissions } from "../consts/Permissions";
-import { ProductionApplicationDTO } from "../entities/ApplicationDTO";
 import { ApplicationsService } from "../services/ApplicationsService";
 import { ApiError } from "../services/core/ApiError";
 import { RootState } from "../store/store";
 import { Permission } from "./Permission";
+import { Application } from "../entities/Application";
 
 export const PreQueuePanel: React.FC = () => {
     const applications = useSelector(
@@ -19,7 +19,7 @@ export const PreQueuePanel: React.FC = () => {
     const {
         isLoading: isApplicationAdding,
         mutateAsync: addApplicationInQueueAsync,
-    } = useMutation<Array<ProductionApplicationDTO>, ApiError, number>(
+    } = useMutation<void, ApiError, number>(
         (id) => ApplicationsService.AddInQueueAsync(id),
         {
             onError(error) {
@@ -77,7 +77,7 @@ export const PreQueuePanel: React.FC = () => {
                     <Table.Column
                         title="Рецепты"
                         responsive={["lg", "xs", "sm", "xl"]}
-                        render={(_, v: ProductionApplicationDTO) =>
+                        render={(_, v: Application) =>
                             v.layers.map((l) => l.recipe.name).join(", ")
                         }
                     ></Table.Column>
@@ -91,7 +91,7 @@ export const PreQueuePanel: React.FC = () => {
                     <Table.Column
                         title="Клиент"
                         responsive={["xxl"]}
-                        render={(_, v: ProductionApplicationDTO) => (
+                        render={(_, v: Application) => (
                             <Permission
                                 need={DispatcherPermissions.ClientsView}
                                 forbiddenText="Нет доступа"
@@ -104,19 +104,19 @@ export const PreQueuePanel: React.FC = () => {
                     <Table.Column
                         title="Машина"
                         responsive={["xxl"]}
-                        render={(_, v: ProductionApplicationDTO) => (
+                        render={(_, v: Application) => (
                             <Permission
                                 need={DispatcherPermissions.CarsView}
                                 forbiddenText="Нет доступа"
                             >
-                                {v.car.plateNumber}
+                                {v.car.name}
                             </Permission>
                         )}
                     ></Table.Column>
 
                     <Table.Column
                         title="Действия"
-                        render={(_, v: ProductionApplicationDTO) => (
+                        render={(_, v: Application) => (
                             <Space>
                                 <Permission
                                     need={

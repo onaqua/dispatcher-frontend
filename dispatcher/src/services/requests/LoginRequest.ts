@@ -15,7 +15,7 @@ export type AddApplicationInPreQueueRequest = {
 
 export type UpdateCarRequest = {
     volume?: number;
-    plateNumber?: string;
+    name?: string;
 };
 
 export type UpdateClientRequest = {
@@ -25,7 +25,7 @@ export type UpdateClientRequest = {
 
 export type CreateCarRequest = {
     volume?: number;
-    plateNumber?: string;
+    name?: string;
 };
 
 export type CreateClientRequest = {

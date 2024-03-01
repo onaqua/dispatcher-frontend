@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useMutation } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { WavyBackground } from "../components/WavyBackground";
-import { ProductionApplicationDTO } from "../entities/ApplicationDTO";
+import { Application } from "../entities/ApplicationDTO";
 import { ApplicationInQueueAdded as ApplicationInQueueUpdated } from "../entities/notifications/ApplicationInQueueAdded";
 import { ApplicationStateUpdated as ApplicationStateUpdatedNotification } from "../entities/notifications/ApplicationStateUpdated";
 import { ApplicationsOrderUpdated } from "../entities/notifications/ApplicationsOrderUpdated";
@@ -47,7 +47,7 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
     );
 
     const { mutateAsync: getApplicationsInQueue } = useMutation<
-        Array<ProductionApplicationDTO>,
+        Array<Application>,
         ApiError
     >(() => ApplicationsService.GetAllInQueueAsync(), {
         onSuccess(data) {
@@ -59,7 +59,7 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
     });
 
     const { mutateAsync: getApplicationsInPreQueue } = useMutation<
-        Array<ProductionApplicationDTO>,
+        Array<Application>,
         ApiError
     >(() => ApplicationsService.GetAllInPreQueueAsync(), {
         onSuccess(data) {
@@ -71,7 +71,7 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
     });
 
     const { mutateAsync: setApplicationInQueueAsync } = useMutation<
-        ProductionApplicationDTO,
+        Application,
         ApiError,
         number
     >((id) => ApplicationsService.GetInQueueAsync(id), {
@@ -98,7 +98,7 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
     });
 
     const { mutateAsync: updateApplicationInQueueAsync } = useMutation<
-        ProductionApplicationDTO,
+        Application,
         ApiError,
         number
     >((id) => ApplicationsService.GetInQueueAsync(id), {
@@ -115,7 +115,7 @@ export const SocketLayout: React.FC<SocketLayoutProps> = ({ element }) => {
     });
 
     const { mutateAsync: updateApplicationInPreQueueAsync } = useMutation<
-        ProductionApplicationDTO,
+        Application,
         ApiError,
         number
     >((id) => ApplicationsService.GetInPreQueueAsync(id), {

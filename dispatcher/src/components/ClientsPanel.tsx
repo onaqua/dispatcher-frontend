@@ -3,66 +3,45 @@ import { ChangeEvent, useState } from "react";
 import { useQuery } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
 import { DispatcherPermissions } from "../consts/Permissions";
+import { Client } from "../entities/Client";
 import { PagedList } from "../entities/PagedList";
-import ProductionClientDTO from "../entities/ProductionClientDTO";
 import { ClientsService } from "../services/ClientsService";
 import { PermissionsService } from "../services/PermissionsService";
 import { ApiError } from "../services/core/ApiError";
 import { setClient, setInvoice } from "../store/reducers/dispatcherSlice";
 import { RootState } from "../store/store";
-import { TypedOption } from "../types/TypedOption";
-import { CreateClientDialog } from "../dialogs/ClientsDialog";
 
 export const ClientsPanel: React.FC = () => {
     const client = useSelector((state: RootState) => state.dispatcher.client);
 
     const dispatch = useDispatch();
     const invoice = useSelector((state: RootState) => state.dispatcher.invoice);
-    const [query, setQuery] = useState("");
-    const [options, setOptions] = useState<
-        Array<TypedOption<ProductionClientDTO>>
-    >([]);
-    const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
-    const { isLoading } = useQuery<PagedList<ProductionClientDTO>, ApiError>(
-        ["cars", query],
-        () => ClientsService.SearchAsync(query, 0, 5),
-        {
-            onSuccess(data) {
-                const options = data.items.map<
-                    TypedOption<ProductionClientDTO>
-                >((car) => ({
-                    value: car.id,
-                    label: car.name,
-                    data: car,
-                }));
 
-                setOptions(options);
-            },
+    const [query, setQuery] = useState("");
+    const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
+
+    const { data: clients, isLoading } = useQuery<PagedList<Client>, ApiError>(
+        ["searchClients", query],
+        () => ClientsService.SearchAsync(query, 1, 5),
+        {
             onError(error) {
                 message.error(error.body.Details);
             },
         }
     );
 
-    const handleSearchChanged = async (query: string) => {
-        setQuery(query);
-    };
-
-    const handleSelect = async (client: ProductionClientDTO) => {
-        dispatch(setClient(client));
-    };
-
-    function handleInvoiceChanged(event: ChangeEvent<HTMLInputElement>): void {
+    const handleSearchChanged = (query: string): void => setQuery(query);
+    const handleSelect = (client: Client): any => dispatch(setClient(client));
+    const handleInvoiceChanged = (event: ChangeEvent<HTMLInputElement>): any =>
         dispatch(setInvoice(event.target.value));
-    }
 
     return (
         <>
-            <CreateClientDialog
+            {/* <CreateClientDialog
                 isOpen={isDialogOpen}
                 onClose={() => setDialogOpen(false)}
                 onOk={() => setDialogOpen(false)}
-            />
+            /> */}
 
             <Card className=" h-full" title="Панель клиентов">
                 <div className=" h-full w-full space-y-2">
@@ -90,12 +69,13 @@ export const ClientsPanel: React.FC = () => {
                             showSearch
                             id="client-input"
                             placeholder="Введите имя"
-                            options={options}
+                            options={clients?.items}
                             loading={isLoading}
                             defaultValue={client?.name}
                             searchValue={query}
+                            fieldNames={{ label: "name", value: "name" }}
                             onSearch={handleSearchChanged}
-                            onSelect={(_, e) => handleSelect(e.data)}
+                            onSelect={(_, e) => handleSelect(e)}
                             onFocus={() => handleSearchChanged("")}
                             className=" w-full"
                         ></Select>

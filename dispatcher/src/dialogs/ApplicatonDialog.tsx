@@ -3,7 +3,7 @@ import Modal from "antd/es/modal/Modal";
 import { useEffect } from "react";
 import { useMutation } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
-import { ProductionApplicationDTO } from "../entities/ApplicationDTO";
+import { Application } from "../entities/ApplicationDTO";
 import { ApplicationsService } from "../services/ApplicationsService";
 import { ApiError } from "../services/core/ApiError";
 import { setApplication } from "../store/reducers/dispatcherSlice";
@@ -32,7 +32,7 @@ export const ApplicationDialog: React.FC<ApplicationDialogProps> = ({
     );
 
     const { mutateAsync: getApplicationAsync } = useMutation<
-        ProductionApplicationDTO,
+        Application,
         ApiError,
         number
     >((applicationId) => ApplicationsService.GetInQueueAsync(applicationId), {
@@ -126,7 +126,7 @@ export const ApplicationDialog: React.FC<ApplicationDialogProps> = ({
                         <Typography.Text type="secondary">
                             Регистрационный номер:{" "}
                             <Typography.Link>
-                                {application.car.plateNumber}
+                                {application.car.name}
                             </Typography.Link>
                         </Typography.Text>
                     </Space>

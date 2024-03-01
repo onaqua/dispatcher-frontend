@@ -16,8 +16,6 @@ export const RefreshProvider: React.FC<RefreshProviderProps> = ({
             (response) => response,
             async (error) => {
                 if (error.response.status !== 401) {
-                    createInteceptor();
-
                     return Promise.reject(error);
                 }
 
@@ -40,6 +38,8 @@ export const RefreshProvider: React.FC<RefreshProviderProps> = ({
                         isRefreshing = false;
 
                         return Promise.reject(error);
+                    } finally {
+                        createInteceptor();
                     }
                 }
 
@@ -47,13 +47,11 @@ export const RefreshProvider: React.FC<RefreshProviderProps> = ({
                     await new Promise((resolve) => setTimeout(resolve, 1000));
                 }
 
-                createInteceptor();
-
                 return axios(error.response.config);
             }
         );
 
-        console.log("return true");
+        console.log("RefreshProvider: created interceptor");
 
         return true;
     };

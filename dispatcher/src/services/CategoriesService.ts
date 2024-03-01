@@ -1,5 +1,5 @@
 import { PagedList } from "../entities/PagedList";
-import { ProductionCategoryDTO } from "../entities/ProductionCategoryDTO";
+import { RecipeCategory } from "../entities/RecipeCategory";
 import { CancelablePromise } from "./core/CancelablePromise";
 import { OpenAPI } from "./core/OpenAPI";
 import { request as __request } from "./core/request";
@@ -10,7 +10,7 @@ export class CategoriesService
         query?: string,
         offset: number = 0,
         quantity: number = 5
-    ): CancelablePromise<PagedList<ProductionCategoryDTO>>
+    ): CancelablePromise<PagedList<RecipeCategory>>
     {
         return __request(OpenAPI, {
             method: "GET",

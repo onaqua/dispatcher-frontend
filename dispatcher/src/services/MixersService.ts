@@ -1,4 +1,4 @@
-import { ProductionMixerDTO } from "../entities/ProductionRecipeDTO";
+import { Mixer } from "../entities/Mixer";
 import { CancelablePromise } from "./core/CancelablePromise";
 import { OpenAPI } from "./core/OpenAPI";
 import { request as __request } from "./core/request";
@@ -7,7 +7,7 @@ import { request as __request } from "./core/request";
 export class MixersService
 {
     public static GetAsync(): CancelablePromise<
-        Array<ProductionMixerDTO>
+        Array<Mixer>
     >
     {
         return __request(OpenAPI, {

@@ -1,23 +1,24 @@
-import {
-    Button,
-    Divider,
-    Input,
-    InputNumber,
-    List,
-    Modal,
-    Skeleton,
-    Space,
-    Spin,
-    Typography,
-    message,
-} from "antd";
+import
+    {
+        Button,
+        Divider,
+        Input,
+        InputNumber,
+        List,
+        Modal,
+        Skeleton,
+        Space,
+        Spin,
+        Typography,
+        message,
+    } from "antd";
 import Search from "antd/es/input/Search";
 import React, { ChangeEvent, useState } from "react";
 import { MdDeleteOutline, MdModeEditOutline } from "react-icons/md";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { InfiniteData, useInfiniteQuery, useMutation } from "react-query";
+import { Car } from "../entities/Car";
 import { PagedList } from "../entities/PagedList";
-import { ProductionCarDTO } from "../entities/ProductionCarDTO";
 import { CarsService } from "../services/CarsService";
 import { ApiError } from "../services/core/ApiError";
 
@@ -27,14 +28,14 @@ export type CreateCarDialogProps = {
     onOk?(): void;
 };
 
-export type CarEditingItemProps<T extends ProductionCarDTO> = {
+export type CarEditingItemProps<T extends Car> = {
     data: T;
-    onUpdate?(id: number, data: T): Promise<ProductionCarDTO>;
+    onUpdate?(id: number, data: T): Promise<Car>;
     onDelete?(id: number): Promise<void>;
-    onCreate?(data: T): Promise<ProductionCarDTO>;
+    onCreate?(data: T): Promise<Car>;
 };
 
-const CarEditingItem = <T extends ProductionCarDTO>(
+const CarEditingItem = <T extends Car>(
     props: CarEditingItemProps<T> & {}
 ) => {
     const [id, setId] = useState(props.data.id);
@@ -86,7 +87,7 @@ const CarEditingItem = <T extends ProductionCarDTO>(
             } catch {}
         }
 
-        props.data.plateNumber = updatedData.plateNumber;
+        props.data.name = updatedData.name;
         props.data.volume = updatedData.volume;
 
         switchEditingMode();
@@ -98,7 +99,7 @@ const CarEditingItem = <T extends ProductionCarDTO>(
     };
 
     const handleNumberChanged = (number: string) => {
-        setUpdatedData({ ...updatedData, plateNumber: number });
+        setUpdatedData({ ...updatedData, name: number });
     };
 
     if (isEditing) {
@@ -108,11 +109,11 @@ const CarEditingItem = <T extends ProductionCarDTO>(
                     <Space direction="vertical" className="w-full mt-2">
                         <Input
                             placeholder="Гос. номер"
-                            value={updatedData.plateNumber}
+                            value={updatedData.name}
                             onChange={(e) =>
                                 handleNumberChanged(e.target.value)
                             }
-                            defaultValue={props.data.plateNumber}
+                            defaultValue={props.data.name}
                         ></Input>
 
                         <InputNumber
@@ -154,7 +155,7 @@ const CarEditingItem = <T extends ProductionCarDTO>(
                 >
                     <>
                         <List.Item.Meta
-                            title={props.data.plateNumber}
+                            title={props.data.name}
                             description={props.data.volume.toString()}
                         />
                     </>
@@ -164,197 +165,192 @@ const CarEditingItem = <T extends ProductionCarDTO>(
     );
 };
 
-export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
-    isOpen,
-    onClose,
-    onOk,
-}) => {
-    const [query, setQuery] = useState("");
-    const [pageSize] = useState(10);
-    const [cars, setCars] = useState<
-        InfiniteData<PagedList<ProductionCarDTO>>
-    >();
+// export const CreateCarDialog: React.FC<CreateCarDialogProps> = ({
+//     isOpen,
+//     onClose,
+//     onOk,
+// }) => {
+    // const [query, setQuery] = useState("");
+    // const [pageSize] = useState(10);
+    // const [cars, setCars] = useState<
+    //     InfiniteData<PagedList<Car>>
+    // >();
 
-    const isNewCarExists = (): boolean => {
-        return (
-            cars?.pages.find((x) => x.items.find((x) => x.id == -1)) !==
-            undefined
-        );
-    };
+    // const isNewCarExists = (): boolean => {
+    //     return (
+    //         cars?.pages.find((x) => x.find((x) => x.id == -1)) !==
+    //         undefined
+    //     );
+    // };
 
-    const { isSuccess, fetchNextPage, hasNextPage } = useInfiniteQuery<
-        PagedList<ProductionCarDTO>,
-        ApiError
-    >(
-        ["loadCars", query],
-        ({ pageParam = 1 }) => {
-            return CarsService.SearchAsync(
-                query,
-                (pageParam - 1) * pageSize,
-                pageSize
-            );
-        },
-        {
-            enabled: isOpen,
-            onSuccess: setCars,
-            getNextPageParam: (_, allPages) => {
-                if (allPages.length * pageSize > allPages[0].totalItems) {
-                    return undefined;
-                }
+    // const { isSuccess, fetchNextPage, hasNextPage } = useInfiniteQuery<
+    //     PagedList<Car>,
+    //     ApiError
+    // >(
+    //     ["loadCars", query],
+    //     ({ pageParam = 1 }) => {
+    //         return CarsService.SearchAsync(
+    //             query,
+    //             pageParam,
+    //             pageSize
+    //         );
+    //     },
+    //     {
+    //         enabled: isOpen,
+    //         onSuccess: setCars,
+    //         getNextPageParam: (_, allPages) => {
+    //             if (allPages.length * pageSize > allPages[0].totalItemCount) {
+    //                 return undefined;
+    //             }
 
-                const nextPage = allPages.length + 1;
+    //             const nextPage = allPages.length + 1;
 
-                return nextPage;
-            },
-        }
-    );
+    //             return nextPage;
+    //         },
+    //     }
+    // );
 
-    const { mutateAsync: deleteCarAsync } = useMutation<void, ApiError, number>(
-        async (id) => {
-            if (id !== -1) {
-                await CarsService.DeleteAsync(id);
-            }
+    // const { mutateAsync: deleteCarAsync } = useMutation<void, ApiError, number>(
+    //     async (id) => {
+    //         if (id !== -1) {
+    //             await CarsService.DeleteAsync(id);
+    //         }
 
-            return;
-        },
-        {
-            onError(err) {
-                message.error(err.body.Details);
-            },
-            onSuccess(_, variables) {
-                const newPages = cars?.pages.map<PagedList<ProductionCarDTO>>(
-                    (page) => ({
-                        items: page.items.filter((x) => x.id !== variables),
-                        totalItems: page.totalItems,
-                    })
-                );
+    //         return;
+    //     },
+    //     {
+    //         onError(err) {
+    //             message.error(err.body.Details);
+    //         },
+    //         onSuccess(_, variables) {
+    //             const newPages = cars?.pages.flatMap(x => x.filter(c => c.id !== variables));
+                
+    //             if (newPages) {
+    //                 setCars({
+    //                     ...cars,
+    //                     pages: newPages,
+    //                     pageParams: cars?.pageParams ?? [],
+    //                 });
+    //             }
+    //         },
+    //     }
+    // );
 
-                if (newPages) {
-                    setCars({
-                        ...cars,
-                        pages: newPages,
-                        pageParams: cars?.pageParams ?? [],
-                    });
-                }
-            },
-        }
-    );
+    // const { mutateAsync: updateCarAsync } = useMutation<
+    //     Car,
+    //     ApiError,
+    //     { id: number; data: Car }
+    // >(
+    //     (record) =>
+    //         CarsService.UpdateAsync(record.id, {
+    //             name: record.data.name,
+    //             volume: record.data.volume,
+    //         }),
+    //     {
+    //         onError(err) {
+    //             message.error(err.body.Details);
+    //         },
+    //     }
+    // );
 
-    const { mutateAsync: updateCarAsync } = useMutation<
-        ProductionCarDTO,
-        ApiError,
-        { id: number; data: ProductionCarDTO }
-    >(
-        (record) =>
-            CarsService.UpdateAsync(record.id, {
-                plateNumber: record.data.plateNumber,
-                volume: record.data.volume,
-            }),
-        {
-            onError(err) {
-                message.error(err.body.Details);
-            },
-        }
-    );
+    // const { mutateAsync: createCarAsync } = useMutation<
+    //     Car,
+    //     ApiError,
+    //     Car
+    // >(
+    //     (car) =>
+    //         CarsService.CreateAsync({
+    //             name: car.name,
+    //             volume: car.volume,
+    //         }),
+    //     {
+    //         onError(err) {
+    //             message.error(err.body.Details);
+    //         },
+    //     }
+    // );
 
-    const { mutateAsync: createCarAsync } = useMutation<
-        ProductionCarDTO,
-        ApiError,
-        ProductionCarDTO
-    >(
-        (car) =>
-            CarsService.CreateAsync({
-                plateNumber: car.plateNumber,
-                volume: car.volume,
-            }),
-        {
-            onError(err) {
-                message.error(err.body.Details);
-            },
-        }
-    );
+    // const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
+    //     setQuery(event.target.value);
+    // };
 
-    const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
-        setQuery(event.target.value);
-    };
+    // const handleAddCar = () => {
+    //     cars?.pages[0].items.push({
+    //         volume: 0,
+    //         name: "Новый автомобиль",
+    //         id: -1,
+    //     });
 
-    const handleAddCar = () => {
-        cars?.pages[0].items.push({
-            volume: 0,
-            plateNumber: "Новый автомобиль",
-            id: -1,
-        });
+    //     setCars({ ...cars, pages: cars!.pages, pageParams: [] });
+    // };
 
-        setCars({ ...cars, pages: cars!.pages, pageParams: [] });
-    };
+    // return (
+    //     <Modal
+    //         cancelButtonProps={{ disabled: true }}
+    //         open={isOpen}
+    //         onCancel={onClose}
+    //         onOk={onOk}
+    //         footer={null}
+    //         closable={false}
+    //         cancelText="Отмена"
+    //         okText="Закрыть"
+    //     >
+    //         <Search
+    //             placeholder="Начните ввод для поиска"
+    //             value={query}
+    //             onChange={handleSearch}
+    //         ></Search>
 
-    return (
-        <Modal
-            cancelButtonProps={{ disabled: true }}
-            open={isOpen}
-            onCancel={onClose}
-            onOk={onOk}
-            footer={null}
-            closable={false}
-            cancelText="Отмена"
-            okText="Закрыть"
-        >
-            <Search
-                placeholder="Начните ввод для поиска"
-                value={query}
-                onChange={handleSearch}
-            ></Search>
+    //         <div
+    //             id="scrollableDiv"
+    //             className="overflow-auto"
+    //             style={{ height: 400 }}
+    //         >
+    //             {isSuccess && cars?.pages && (
+    //                 <InfiniteScroll
+    //                     dataLength={cars.pages.reduce(
+    //                         (acc, page) => acc + page.items.length,
+    //                         0
+    //                     )}
+    //                     endMessage={
+    //                         <>
+    //                             <div className="text-center">
+    //                                 <Divider />
+    //                                 <Typography.Text className=" text-center">
+    //                                     Больше ничего нет
+    //                                 </Typography.Text>
+    //                             </div>
+    //                         </>
+    //                     }
+    //                     scrollableTarget="scrollableDiv"
+    //                     next={fetchNextPage}
+    //                     hasMore={hasNextPage ?? false}
+    //                     loader={
+    //                         <Skeleton active paragraph={{ rows: 1 }}></Skeleton>
+    //                     }
+    //                 >
+    //                     <List
+    //                         dataSource={cars.pages}
+    //                         renderItem={(item) =>
+    //                             item.items.map((car) => (
+    //                                 <CarEditingItem
+    //                                     data={car}
+    //                                     onCreate={createCarAsync}
+    //                                     onDelete={deleteCarAsync}
+    //                                     onUpdate={(e, v) =>
+    //                                         updateCarAsync({ id: e, data: v })
+    //                                     }
+    //                                 />
+    //                             ))
+    //                         }
+    //                     />
+    //                 </InfiniteScroll>
+    //             )}
+    //         </div>
 
-            <div
-                id="scrollableDiv"
-                className="overflow-auto"
-                style={{ height: 400 }}
-            >
-                {isSuccess && cars?.pages && (
-                    <InfiniteScroll
-                        dataLength={cars.pages.reduce(
-                            (acc, page) => acc + page.items.length,
-                            0
-                        )}
-                        endMessage={
-                            <>
-                                <div className="text-center">
-                                    <Divider />
-                                    <Typography.Text className=" text-center">
-                                        Больше ничего нет
-                                    </Typography.Text>
-                                </div>
-                            </>
-                        }
-                        scrollableTarget="scrollableDiv"
-                        next={fetchNextPage}
-                        hasMore={hasNextPage ?? false}
-                        loader={
-                            <Skeleton active paragraph={{ rows: 1 }}></Skeleton>
-                        }
-                    >
-                        <List
-                            dataSource={cars.pages}
-                            renderItem={(item) =>
-                                item.items.map((car) => (
-                                    <CarEditingItem
-                                        data={car}
-                                        onCreate={createCarAsync}
-                                        onDelete={deleteCarAsync}
-                                        onUpdate={(e, v) =>
-                                            updateCarAsync({ id: e, data: v })
-                                        }
-                                    />
-                                ))
-                            }
-                        />
-                    </InfiniteScroll>
-                )}
-            </div>
-
-            <Button disabled={isNewCarExists()} onClick={handleAddCar}>
-                Добавить
-            </Button>
-        </Modal>
-    );
-};
+    //         <Button disabled={isNewCarExists()} onClick={handleAddCar}>
+    //             Добавить
+    //         </Button>
+    //     </Modal>
+    // );
+// };

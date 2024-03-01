@@ -1,4 +1,4 @@
-import { ProductionApplicationDTO } from "../entities/ApplicationDTO";
+import { Application } from "../entities/Application";
 import { CancelablePromise } from "./core/CancelablePromise";
 import { OpenAPI } from "./core/OpenAPI";
 import { request as __request } from "./core/request";
@@ -8,7 +8,7 @@ import { AddApplicationInPreQueueRequest } from "./requests/LoginRequest";
 export class ApplicationsService
 {
     public static GetAllInQueueAsync(): CancelablePromise<
-        Array<ProductionApplicationDTO>
+        Array<Application>
     >
     {
         return __request(OpenAPI, {
@@ -23,7 +23,7 @@ export class ApplicationsService
 
     public static AddInQueueAsync(
         applicationId: number
-    ): CancelablePromise<Array<ProductionApplicationDTO>>
+    ): CancelablePromise<void>
     {
         return __request(OpenAPI, {
             method: "POST",
@@ -79,7 +79,7 @@ export class ApplicationsService
     }
 
     public static GetAllInPreQueueAsync(): CancelablePromise<
-        Array<ProductionApplicationDTO>
+        Array<Application>
     >
     {
         return __request(OpenAPI, {
@@ -94,7 +94,7 @@ export class ApplicationsService
 
     public static GetInQueueAsync(
         applicationId: number
-    ): CancelablePromise<ProductionApplicationDTO>
+    ): CancelablePromise<Application>
     {
         return __request(OpenAPI, {
             method: "GET",
@@ -109,7 +109,7 @@ export class ApplicationsService
 
     public static GetInPreQueueAsync(
         applicationId: number
-    ): CancelablePromise<ProductionApplicationDTO>
+    ): CancelablePromise<Application>
     {
         return __request(OpenAPI, {
             method: "GET",

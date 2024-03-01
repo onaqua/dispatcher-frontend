@@ -1,9 +1,9 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { ProductionApplicationDTO } from "../../entities/ApplicationDTO";
 import { ApplicationOrderDTO } from "../../entities/ApplicationOrderDTO";
+import { Application } from "../../entities/Application";
 
 export type ApplicationsState = {
-    applications: Array<ProductionApplicationDTO>;
+    applications: Array<Application>;
 };
 
 const initialState: ApplicationsState = {
@@ -16,7 +16,7 @@ const applicationsInPreQueueSlice = createSlice({
     reducers: {
         setApplications(
             state,
-            action: PayloadAction<Array<ProductionApplicationDTO>>
+            action: PayloadAction<Array<Application>>
         ) {
             state.applications = action.payload.sort(
                 (a, b) => a.order - b.order
@@ -24,7 +24,7 @@ const applicationsInPreQueueSlice = createSlice({
         },
         addApplication: (
             state,
-            action: PayloadAction<ProductionApplicationDTO>
+            action: PayloadAction<Application>
         ) => {
             if (
                 state.applications.find(
@@ -45,7 +45,7 @@ const applicationsInPreQueueSlice = createSlice({
         },
         updateApplication: (
             state,
-            action: PayloadAction<ProductionApplicationDTO>
+            action: PayloadAction<Application>
         ) => {
             const application = action.payload;
             const applicationId = application.id;

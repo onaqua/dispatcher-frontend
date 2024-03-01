@@ -1,0 +1,42 @@
+import { ApplicationStatus } from "./ApplicationStatus";
+import { BaseInfo } from "./BaseInfo";
+import { CalibRecipeHumidity } from "./CalibRecipeHumidity";
+import { Car } from "./Car";
+import { Client } from "./Client";
+import { LayerApplication } from "./LayerApplication";
+import { PostUnload } from "./PostUnload";
+import { UserBase } from "./UserBase";
+
+export interface Application extends BaseInfo {
+    wayBill: string;
+    client: Client;
+    car: Car;
+    volume: number;
+    factVolume: number;
+    volumeCurrent: number;
+    startTime: string;
+    endTime: string;
+    creationTime: string;
+    isCompleted: boolean;
+    isDeleted: boolean;
+    user: UserBase;
+    mixerNumber: number;
+    order: number;
+    batchPhase: number;
+    batchsRemainCount: number;
+    trainMode: boolean;
+    dateTimeStamp: string;
+    creator: UserBase;
+    isSpeedApp: boolean;
+    lastSaveBatchNum: number;
+    isRunning: boolean;
+    isEditLock: boolean;
+    product: BaseInfo;
+    layers: LayerApplication[];
+    lastLayers: number;
+    unloadingPoint: PostUnload;
+    correctWaterPanel: number;
+    status: ApplicationStatus;
+    startAuto: boolean;
+    calibRecipeHumidity: CalibRecipeHumidity;
+}

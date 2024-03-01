@@ -1,15 +1,12 @@
 import { Dayjs } from "dayjs";
 import { PagedList } from "../entities/PagedList";
-import {
-    EventLevel,
-    EventStatus,
-    ProductionEventDTO,
-} from "../entities/ProductionEventDTO";
-import UserStateDTO from "../entities/UserStateDTO";
+import UserState from "../entities/UserStateDTO";
 import { CancelablePromise } from "./core/CancelablePromise";
 import { OpenAPI } from "./core/OpenAPI";
 import { request as __request } from "./core/request";
 import { LoginRequest } from "./requests/LoginRequest";
+import { EventStatus } from "../entities/EventStatus";
+import { EventLevel } from "../entities/EventLevel";
 
 export class EventsService {
     public static GetAsync(
@@ -21,7 +18,7 @@ export class EventsService {
         dateTo?: Dayjs | undefined | null,
         status?: EventStatus | undefined | null,
         level?: EventLevel | undefined | null
-    ): CancelablePromise<PagedList<ProductionEventDTO>> {
+    ): CancelablePromise<PagedList<Event>> {
         return __request(OpenAPI, {
             method: "GET",
             url: `/events?offset=${offset}&quantity=${quantity}&fromDate=${dateFrom?.toJSON()}&toDate=${dateTo?.toJSON()}&objectName=${
@@ -61,7 +58,7 @@ export class AuthorizationService {
         });
     }
 
-    public static GetStateAsync(): CancelablePromise<UserStateDTO> {
+    public static GetStateAsync(): CancelablePromise<UserState> {
         return __request(OpenAPI, {
             method: "GET",
             url: "/authorization/state",

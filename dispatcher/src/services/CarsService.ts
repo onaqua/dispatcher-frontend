@@ -1,5 +1,5 @@
+import { Car } from "../entities/Car";
 import { PagedList } from "../entities/PagedList";
-import { ProductionCarDTO } from "../entities/ProductionCarDTO";
 import { CancelablePromise } from "./core/CancelablePromise";
 import { OpenAPI } from "./core/OpenAPI";
 import { request as __request } from "./core/request";
@@ -10,7 +10,7 @@ export class CarsService {
         query?: string,
         offset: number = 0,
         quantity: number = 5
-    ): CancelablePromise<PagedList<ProductionCarDTO>> {
+    ): CancelablePromise<PagedList<Car>> {
         return __request(OpenAPI, {
             method: "GET",
             url: `/cars?query=${query}&offset=${offset}&quantity=${quantity}`,
@@ -34,7 +34,7 @@ export class CarsService {
 
     public static CreateAsync(
         request: UpdateCarRequest
-    ): CancelablePromise<ProductionCarDTO> {
+    ): CancelablePromise<Car> {
         return __request(OpenAPI, {
             method: "POST",
             url: `/cars`,
@@ -49,7 +49,7 @@ export class CarsService {
     public static UpdateAsync(
         id: number,
         request: UpdateCarRequest
-    ): CancelablePromise<ProductionCarDTO> {
+    ): CancelablePromise<Car> {
         return __request(OpenAPI, {
             method: "PATCH",
             url: `/cars/${id}`,

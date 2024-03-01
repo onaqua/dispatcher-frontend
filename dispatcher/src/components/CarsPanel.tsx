@@ -1,15 +1,12 @@
 import { Button, Card, Select, message } from "antd";
 import { useState } from "react";
-import { useMutation } from "react-query";
+import { useQuery } from "react-query";
 import { useDispatch, useSelector } from "react-redux";
-import { CreateCarDialog } from "../dialogs/CarsDialogs";
+import { Car } from "../entities/Car";
 import { PagedList } from "../entities/PagedList";
-import { ProductionCarDTO } from "../entities/ProductionCarDTO";
 import { CarsService } from "../services/CarsService";
 import { ApiError } from "../services/core/ApiError";
 import { setCar } from "../store/reducers/dispatcherSlice";
-import { PaginationProps } from "../types/PaginationProps";
-import { TypedOption } from "../types/TypedOption";
 import { RootState } from "../store/store";
 
 export const CarsPanel: React.FC = () => {
@@ -18,59 +15,29 @@ export const CarsPanel: React.FC = () => {
     const selectedCar = useSelector((root: RootState) => root.dispatcher.car);
 
     const [query, setQuery] = useState("");
-    const [options, setOptions] = useState<
-        Array<TypedOption<ProductionCarDTO>>
-    >([]);
 
     const [isDialogOpen, setDialogOpen] = useState<boolean>(false);
 
-    const { isLoading, mutateAsync: searchCarsAsync } = useMutation<
-        PagedList<ProductionCarDTO>,
-        ApiError,
-        PaginationProps
-    >(
-        (pagination) =>
-            CarsService.SearchAsync(
-                pagination.query,
-                (pagination.page - 1) * pagination.pageSize,
-                pagination.pageSize
-            ),
+    const { data: cars, isLoading } = useQuery<PagedList<Car>, ApiError>(
+        ["searchCars", query],
+        () => CarsService.SearchAsync(query, 1, 5),
         {
-            onSuccess(data) {
-                const fetchedOptions = data.items.map<
-                    TypedOption<ProductionCarDTO>
-                >((car) => ({
-                    value: car.id,
-                    label: car.plateNumber,
-                    data: car,
-                }));
-
-                setOptions(fetchedOptions);
-            },
             onError(error) {
                 message.error(error.body.Details);
             },
         }
     );
 
-    const handleSearchChanged = (query: string) => {
-        setQuery(query);
-
-        searchCarsAsync({ query: query, page: 1, pageSize: 5 });
-    };
-
-    const handleSelect = async (car: ProductionCarDTO) => {
-        console.log("selected car:", car);
-        dispatch(setCar(car));
-    };
+    const handleSearchChanged = (query: string) => setQuery(query);
+    const handleSelect = async (car: Car) => dispatch(setCar(car));
 
     return (
         <>
-            <CreateCarDialog
+            {/* <CreateCarDialog
                 isOpen={isDialogOpen}
                 onClose={() => setDialogOpen(false)}
                 onOk={() => setDialogOpen(false)}
-            />
+            /> */}
             <Card title="Панель автомобилей">
                 <div className="flex space-x-2">
                     <Button type="dashed" onClick={() => setDialogOpen(true)}>
@@ -79,13 +46,14 @@ export const CarsPanel: React.FC = () => {
                     <Select
                         showSearch
                         className="w-full"
-                        defaultValue={selectedCar.plateNumber}
+                        defaultValue={selectedCar.name}
+                        fieldNames={{ label: "name", value: "name" }}
                         placeholder="Введите номер"
-                        options={options}
+                        options={cars?.items}
                         loading={isLoading}
                         searchValue={query}
                         onSearch={handleSearchChanged}
-                        onSelect={(_, e) => handleSelect(e.data)}
+                        onSelect={(_, e) => handleSelect(e)}
                         onFocus={() => handleSearchChanged("")}
                     ></Select>
                 </div>

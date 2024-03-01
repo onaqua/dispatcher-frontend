@@ -1,29 +1,29 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { ProductionApplicationDTO } from "../../entities/ApplicationDTO";
-import { ProductionCarDTO } from "../../entities/ProductionCarDTO";
-import ProductionClientDTO from "../../entities/ProductionClientDTO";
-import { ProductionCategoryDTO } from "../../entities/ProductionCategoryDTO";
+import { Car } from "../../entities/Car";
+import { RecipeCategory } from "../../entities/RecipeCategory";
+import { Client } from "../../entities/Client";
+import { Application } from "../../entities/Application";
 
 export type DispatcherState = {
     mixer: number;
     volume: number;
     invoice?: string;
-    car: ProductionCarDTO;
-    client?: ProductionClientDTO;
+    car: Car;
+    client?: Client;
     recipeId?: number;
-    category: ProductionCategoryDTO;
+    category: RecipeCategory;
     isQuickApplication: boolean;
-    application?: ProductionApplicationDTO;
+    application?: Application;
 };
 
 const initialState: DispatcherState = {
     mixer: 1,
     volume: 1,
     invoice: "",
-    car: { id: 0, plateNumber: "Не выбрана", volume: 0 },
+    car: { id: 0, name: "(не выбран)", volume: 0 },
     recipeId: 0,
-    client: { id: 0, name: "Не выбран", address: "Не выбран" },
-    category: { id: 0, name: "Без категории" },
+    client: { id: 0, name: "(не выбран)", address: "(не выбран)" },
+    category: { id: 1, name: "Без категории" },
     isQuickApplication: false,
 };
 
@@ -40,19 +40,19 @@ const dispatcherSlice = createSlice({
         setVolume(state, action: PayloadAction<number>) {
             state.volume = action.payload;
         },
-        setCar(state, action: PayloadAction<ProductionCarDTO>) {
+        setCar(state, action: PayloadAction<Car>) {
             state.car = action.payload;
         },
         setRecipe(state, action: PayloadAction<number>) {
             state.recipeId = action.payload;
         },
-        setCategory(state, action: PayloadAction<ProductionCategoryDTO>) {
+        setCategory(state, action: PayloadAction<RecipeCategory>) {
             state.category = action.payload;
         },
-        setClient(state, action: PayloadAction<ProductionClientDTO>) {
+        setClient(state, action: PayloadAction<Client>) {
             state.client = action.payload;
         },
-        setApplication(state, action: PayloadAction<ProductionApplicationDTO>) {
+        setApplication(state, action: PayloadAction<Application>) {
             state.application = action.payload;
         },
         setQuickApplication(state, action: PayloadAction<boolean>) {

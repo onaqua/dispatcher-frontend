@@ -1,5 +1,5 @@
 import { Badge } from "antd";
-import { ApplicationStatus } from "../entities/ApplicationDTO";
+import { ApplicationStatus } from "../entities/ApplicationStatus";
 
 
 export const ApplicationStatusBadge: React.FC<{

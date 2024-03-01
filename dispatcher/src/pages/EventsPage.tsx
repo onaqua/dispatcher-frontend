@@ -1,28 +1,30 @@
-import {
-    Badge,
-    Button,
-    Card,
-    Col,
-    DatePicker,
-    Input,
-    Row,
-    Table,
-    Tooltip,
-    Typography,
-    message,
-} from "antd";
+import
+    {
+        Badge,
+        Button,
+        Card,
+        Col,
+        DatePicker,
+        Input,
+        Row,
+        Table,
+        Tooltip,
+        Typography,
+        message,
+    } from "antd";
 import Select, { DefaultOptionType } from "antd/es/select";
 import dayjs from "dayjs";
 import React, { useEffect } from "react";
 import { useMutation } from "react-query";
+import
+    {
+        Event,
+    } from "../entities/Event";
 import { PagedList } from "../entities/PagedList";
-import {
-    EventLevel,
-    EventStatus,
-    ProductionEventDTO,
-} from "../entities/ProductionEventDTO";
 import { EventsService } from "../services/AuthorizationService";
 import { ApiError } from "../services/core/ApiError";
+import { EventLevel } from "../entities/EventLevel";
+import { EventStatus } from "../entities/EventStatus";
 
 type RangeValue = Parameters<
     NonNullable<React.ComponentProps<typeof DatePicker.RangePicker>["onChange"]>
@@ -44,11 +46,6 @@ export const EventsPage: React.FC = () => {
         dayjs().add(1, "day"),
     ]);
 
-    const [events, setEvents] = React.useState<PagedList<ProductionEventDTO>>({
-        items: [],
-        totalItems: 0,
-    });
-
     const [objectName, setObjectName] = React.useState<string>("");
     const [userName, setUserName] = React.useState<string>("");
     const [pageSize, setPageSize] = React.useState<number>(5);
@@ -63,8 +60,8 @@ export const EventsPage: React.FC = () => {
         { label: "Действия оператора", value: EventLevel.Information },
     ];
 
-    const { isLoading, mutateAsync: getEventsAsync } = useMutation<
-        PagedList<ProductionEventDTO>,
+    const { data: events, isLoading, mutateAsync: getEventsAsync } = useMutation<
+        PagedList<Event>,
         ApiError,
         GetEventsProps
     >(
@@ -80,9 +77,6 @@ export const EventsPage: React.FC = () => {
                 props.level
             ),
         {
-            onSuccess(data) {
-                setEvents(data);
-            },
             onError(error) {
                 message.error(error.body.Details);
             },
@@ -268,9 +262,9 @@ export const EventsPage: React.FC = () => {
                     }}
                 >
                     <Table.Column
-                        render={(_, e: ProductionEventDTO) => {
+                        render={(_, e: Event) => {
                             if (
-                                e.eventType.eventLevel ===
+                                e.typeId ===
                                 EventLevel.Information
                             ) {
                                 return (
@@ -342,7 +336,7 @@ export const EventsPage: React.FC = () => {
                     ></Table.Column>
                     <Table.Column
                         title="Дата события"
-                        render={(_, e: ProductionEventDTO) => (
+                        render={(_, e: Event) => (
                             <Typography.Text className=" whitespace-pre-wrap">
                                 {dayjs(e.appearanceDateTime).format(
                                     "DD.MM.YYYY HH:mm:ss"
@@ -352,7 +346,7 @@ export const EventsPage: React.FC = () => {
                     ></Table.Column>
                     <Table.Column
                         title="Имя"
-                        render={(_, e: ProductionEventDTO) => (
+                        render={(_, e: Event) => (
                             <Tooltip
                                 title="Нажмите на поле, чтобы увидеть все изменения связанные с этим объектом"
                                 color="geekblue"
@@ -370,7 +364,7 @@ export const EventsPage: React.FC = () => {
                     ></Table.Column>
                     <Table.Column
                         title="Описание"
-                        render={(_, e: ProductionEventDTO) => (
+                        render={(_, e: Event) => (
                             <Typography.Text className=" whitespace-pre-wrap">
                                 {e.eventType.description}
                             </Typography.Text>
@@ -378,7 +372,7 @@ export const EventsPage: React.FC = () => {
                     ></Table.Column>
                     <Table.Column
                         title="Старое значение"
-                        render={(_, e: ProductionEventDTO) => (
+                        render={(_, e: Event) => (
                             <Typography.Text className=" whitespace-pre-wrap">
                                 {e.valueBefore}
                             </Typography.Text>
@@ -386,7 +380,7 @@ export const EventsPage: React.FC = () => {
                     ></Table.Column>
                     <Table.Column
                         title="Новое значение"
-                        render={(_, e: ProductionEventDTO) => (
+                        render={(_, e: Event) => (
                             <Typography.Text className=" whitespace-pre-wrap">
                                 {e.valueAfter}
                             </Typography.Text>
@@ -394,7 +388,7 @@ export const EventsPage: React.FC = () => {
                     ></Table.Column>
                     <Table.Column
                         title="Пользователь"
-                        render={(_, e: ProductionEventDTO) => (
+                        render={(_, e: Event) => (
                             <Typography.Link
                                 className=" whitespace-pre-wrap"
                                 onClick={() =>

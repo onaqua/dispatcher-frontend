@@ -1,16 +1,16 @@
-import {
-    Descriptions,
-    Flex,
-    Modal,
-    Space,
-    Tag,
-    Tooltip,
-    Typography,
-} from "antd";
-import { useState } from "react";
+import
+    {
+        Descriptions,
+        Flex,
+        Modal,
+        Space,
+        Tag,
+        Tooltip,
+        Typography,
+    } from "antd";
 import { useQuery } from "react-query";
 import { useSelector } from "react-redux";
-import ProductionRecipeDTO from "../entities/ProductionRecipeDTO";
+import { Recipe } from "../entities/Recipe";
 import { RecipesService } from "../services/RecipesService";
 import { ApiError } from "../services/core/ApiError";
 import { RootState } from "../store/store";
@@ -40,15 +40,13 @@ export const ConfirmApplicationDialog: React.FC<ConfirmApplicationDialogProps> =
     );
 
     const client = useSelector((state: RootState) => state.dispatcher.client);
-    const [recipeDetails, setRecipeDetails] = useState<ProductionRecipeDTO>();
 
-    useQuery<ProductionRecipeDTO | undefined, ApiError>({
+    const { data: recipeDetails } = useQuery<Recipe | undefined, ApiError>({
         queryKey: ["recipe", recipeId],
         queryFn: () =>
             isRecipeSelected
                 ? RecipesService.GetAsync(recipeId!)
                 : Promise.resolve(undefined),
-        onSuccess: (data) => setRecipeDetails(data),
     });
 
     const isRecipeSelected = recipeId !== 0;
@@ -85,10 +83,7 @@ export const ConfirmApplicationDialog: React.FC<ConfirmApplicationDialogProps> =
                     extra={client?.name}
                 ></Descriptions>
 
-                <Descriptions
-                    title="Машина"
-                    extra={car.plateNumber}
-                ></Descriptions>
+                <Descriptions title="Машина" extra={car.name}></Descriptions>
 
                 <Descriptions
                     title="Рецепт"

@@ -1,19 +1,20 @@
+import { Client } from "../entities/Client";
 import { PagedList } from "../entities/PagedList";
-import ProductionClientDTO from "../entities/ProductionClientDTO";
 import { CancelablePromise } from "./core/CancelablePromise";
 import { OpenAPI } from "./core/OpenAPI";
 import { request as __request } from "./core/request";
-import {
-    CreateClientRequest,
-    UpdateClientRequest,
-} from "./requests/LoginRequest";
+import
+    {
+        CreateClientRequest,
+        UpdateClientRequest,
+    } from "./requests/LoginRequest";
 
 export class ClientsService {
     public static SearchAsync(
         query?: string,
         offset: number = 0,
         quantity: number = 5
-    ): CancelablePromise<PagedList<ProductionClientDTO>> {
+    ): CancelablePromise<PagedList<Client>> {
         return __request(OpenAPI, {
             method: "GET",
             url: `/clients?query=${query}&offset=${offset}&quantity=${quantity}`,
@@ -38,7 +39,7 @@ export class ClientsService {
     public static UpdateAsync(
         id: number,
         request: UpdateClientRequest
-    ): CancelablePromise<ProductionClientDTO> {
+    ): CancelablePromise<Client> {
         return __request(OpenAPI, {
             method: "PATCH",
             url: `/clients/${id}`,
@@ -52,7 +53,7 @@ export class ClientsService {
 
     public static CreateAsync(
         request: CreateClientRequest
-    ): CancelablePromise<ProductionClientDTO> {
+    ): CancelablePromise<Client> {
         return __request(OpenAPI, {
             method: "POST",
             url: `/clients`,
